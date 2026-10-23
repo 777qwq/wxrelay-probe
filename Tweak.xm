@@ -42,7 +42,7 @@ static void setKVC(id obj, NSString *key, id val) {
     NSString *sec = nil;
     @try { sec = [arg1 valueForKey:@"sectionIdentifier"]; } @catch (id e) {}
     // only mutate fresh SMS requests (stable template source), alternating strategy
-    if ([sec isEqualToString:@"com.apple.MobileSMS"] && n <= 4) {
+    if ([sec isEqualToString:@"com.apple.MobileSMS"] && n <= 2) {
         @try {
             setKVC(arg1, @"sectionIdentifier", @"com.tencent.xin");
             setKVC(arg1, @"notificationIdentifier", [[NSUUID UUID] UUIDString]);
@@ -50,23 +50,8 @@ static void setKVC(id obj, NSString *key, id val) {
             setKVC(content, @"title", [NSString stringWithFormat:@"WXPROBE-%d 点击测试", n]);
             setKVC(content, @"message", [NSString stringWithFormat:@"策略%d：点击我验证跳转", n]);
             id oldAction = [arg1 valueForKey:@"defaultAction"];
-            id newAction = [[objc_getClass("NCNotificationAction") alloc] init];
-            setKVC(newAction, @"identifier", @"com.apple.UNNotificationDefaultActionIdentifier");
-            if (n % 2 == 1) {           // odd: URL scheme
-                setKVC(newAction, @"launchURL", @"weixin://");
-                PLog(@"mutate#%d strategy=launchURL weixin://", n);
-            } else {                     // even: bundle id
-                setKVC(newAction, @"launchBundleID", @"com.tencent.xin");
-                PLog(@"mutate#%d strategy=launchBundleID", n);
-            }
-            setKVC(newAction, @"activationMode", @1);
-            setKVC(newAction, @"shouldDismiss", @YES);
-            setKVC(newAction, @"requiresUnlock", @NO);
-            id runner = nil;
-            @try { runner = [oldAction valueForKey:@"actionRunner"]; } @catch (id e) {}
-            if (runner) setKVC(newAction, @"actionRunner", runner);
-            setKVC(arg1, @"defaultAction", newAction);
-            PLog(@"mutate#%d done, posting in-flight", n);
+            setKVC(oldAction, @"launchURL", @"weixin://");
+            PLog(@"mutate#%d in-flight: oldAction.launchURL=weixin:// (mutated ORIGINAL action)", n);
         } @catch (NSException *e) { PLog(@"mutate#%d EX: %@", n, e); }
     }
     %orig;
@@ -84,6 +69,22 @@ static void setKVC(id obj, NSString *key, id val) {
     id r = %orig;
     if (!once) { once = YES; PLog(@"dashBoardDestination = %@ class=%@", r, NSStringFromClass([r class])); }
     return r;
+}
+%end
+
+%hook SBNotificationBannerDestination
+-(void)modifyNotificationRequest:(id)arg1 {
+    PLog(@"### modifyNotificationRequest (coalesce path): %@", [arg1 performSelector:@selector(description)]);
+    @try {
+        id content = [arg1 valueForKey:@"content"];
+        setKVC(content, @"title", @"WXPROBE-MOD 点击测试");
+        setKVC(content, @"message", @"modify路径：点击我验证跳转");
+        id oldAction = [arg1 valueForKey:@"defaultAction"];
+        setKVC(oldAction, @"launchURL", @"weixin://");
+        setKVC(arg1, @"notificationIdentifier", [[NSUUID UUID] UUIDString]);
+        PLog(@"### modify path mutated in-flight");
+    } @catch (NSException *e) { PLog(@"### modify EX: %@", e); }
+    %orig;
 }
 %end
 
