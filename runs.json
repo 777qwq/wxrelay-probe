@@ -1,28 +1,28 @@
 {
-  "total_count": 13,
+  "total_count": 14,
   "workflow_runs": [
     {
-      "id": 39906180419,
+      "id": 39906580146,
       "name": "Build WXRelayProbe",
-      "node_id": "WFR_kwLOVURL2M8AAAAJSpf9Qw",
+      "node_id": "WFR_kwLOVURL2M8AAAAJSp4Wsg",
       "head_branch": "main",
-      "head_sha": "15b8e048d0d49a41bb9219d20b157723996e88d6",
+      "head_sha": "59b2b81a32c22230b9ee7e3dedd029f92821d2c7",
       "path": ".github/workflows/build.yml",
-      "display_title": "fix: id-cast in runner hooks",
-      "run_number": 13,
+      "display_title": "v0.6.0: BBBulletin route (FakeNotify recipe)",
+      "run_number": 14,
       "event": "push",
       "status": "in_progress",
       "conclusion": null,
       "workflow_id": 393613938,
-      "check_suite_id": 108160936011,
-      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZLuToSw",
-      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39906180419",
-      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39906180419",
+      "check_suite_id": 108162005075,
+      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZLvU4Uw",
+      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39906580146",
+      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39906580146",
       "pull_requests": [
 
       ],
-      "created_at": "2026-10-23T05:30:55Z",
-      "updated_at": "2026-10-23T05:30:59Z",
+      "created_at": "2026-10-23T05:35:13Z",
+      "updated_at": "2026-10-23T05:35:17Z",
       "actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -48,7 +48,7 @@
       "referenced_workflows": [
 
       ],
-      "run_started_at": "2026-10-23T05:30:55Z",
+      "run_started_at": "2026-10-23T05:35:13Z",
       "triggering_actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -70,19 +70,19 @@
         "user_view_type": "public",
         "site_admin": false
       },
-      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39906180419/jobs",
-      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39906180419/logs",
-      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108160936011",
-      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39906180419/artifacts",
-      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39906180419/cancel",
-      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39906180419/rerun",
+      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39906580146/jobs",
+      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39906580146/logs",
+      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108162005075",
+      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39906580146/artifacts",
+      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39906580146/cancel",
+      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39906580146/rerun",
       "previous_attempt_url": null,
       "workflow_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/workflows/393613938",
       "head_commit": {
-        "id": "15b8e048d0d49a41bb9219d20b157723996e88d6",
-        "tree_id": "f2db9d35f5d8ebc1ebc39fe4d72a575e847873a3",
-        "message": "fix: id-cast in runner hooks",
-        "timestamp": "2026-10-23T05:30:52Z",
+        "id": "59b2b81a32c22230b9ee7e3dedd029f92821d2c7",
+        "tree_id": "1477e887154a906c06b46067dd2412640637a2d3",
+        "message": "v0.6.0: BBBulletin route (FakeNotify recipe)",
+        "timestamp": "2026-10-23T05:35:10Z",
         "author": {
           "name": "wxrelay",
           "email": "bot@wxrelay"

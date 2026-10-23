@@ -105,6 +105,8 @@ static void setKVC(id obj, NSString *key, id val) {
 }
 %end
 
+static void runOwnBulletinTest(BOOL lockScreen);
+
 static id gBBServer = nil;
 static id gDestinations = nil;
 
@@ -153,8 +155,12 @@ static void runOwnBulletinTest(BOOL lockScreen) {
         PLog(@"BBAction created: %@", action);
         if (action) setKVC(b, @"defaultAction", action);
         PLog(@"own bulletin built: %@", [b performSelector:@selector(description)]);
-        if (lockScreen)
-            [(id)gBBServer performSelector:@selector(publishBulletin:destinations:alwaysToLockScreen:) withObject:b withObject:gDestinations withObject:(id)kCFBooleanTrue];
+        if (lockScreen) {
+            SEL sel = @selector(publishBulletin:destinations:alwaysToLockScreen:);
+            IMP imp = [(id)gBBServer methodForSelector:sel];
+            void (*fn)(id, SEL, id, id, BOOL) = (void (*)(id, SEL, id, id, BOOL))imp;
+            fn(gBBServer, sel, b, gDestinations, YES);
+        }
         else
             [(id)gBBServer performSelector:@selector(publishBulletin:destinations:) withObject:b withObject:gDestinations];
         PLog(@"#### own bulletin posted (lockScreen=%d)", lockScreen);
