@@ -84,7 +84,7 @@ static id gSound = nil;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
         gBBQueue = dispatch_get_current_queue();
-        gDestObj = [[NSNumber numberWithUnsignedLongLong:destinations] retain];
+        gDestObj = [NSNumber numberWithUnsignedLongLong:destinations];
 #pragma clang diagnostic pop
         PLog(@"BBServer captured, mask=0x%llx queue=%@", destinations, gBBQueue);
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20*NSEC_PER_SEC)), gBBQueue, ^{
