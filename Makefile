@@ -7,7 +7,7 @@ include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = WXRelayProbe
 
 WXRelayProbe_FILES = Tweak.xm
-WXRelayProbe_CFLAGS = -fobjc-arc -Wall
+WXRelayProbe_CFLAGS = -fobjc-arc -Wall -Wno-unused-variable
 WXRelayProbe_FRAMEWORKS = Foundation UIKit
 
 include $(THEOS_MAKE_PATH)/tweak.mk

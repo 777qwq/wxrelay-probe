@@ -14,7 +14,6 @@
 static NSString *kLogPath = @"/var/mobile/Library/Logs/WXRelayProbe.log";
 static id gReq = nil;      // captured NCNotificationRequest
 static id gDest = nil;     // captured SBNotificationBannerDestination
-static int gPhase = 0;
 
 static void PLog(NSString *fmt, ...) NS_FORMAT_FUNCTION(1, 2);
 static void PLog(NSString *fmt, ...) {
