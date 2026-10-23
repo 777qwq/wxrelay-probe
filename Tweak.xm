@@ -1,6 +1,6 @@
+// WXRelayProbe 1.2.0 - identify app from UIMutableApplicationSceneSettings in deactivation flow
 #import <fcntl.h>
 #import <unistd.h>
-// WXRelayProbe 1.0.0 - dump SBUserNotificationCenter dispatchUserNotification payload
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
@@ -22,48 +22,50 @@ static void PLog(NSString *fmt, ...) {
     if (fd >= 0) { write(fd, d.bytes, d.length); close(fd); }
 }
 
-static void dumpPayload(id arg1) {
-    static int n = 0;
-    int c = ++n;
-    if (c > 6) return;
-    PLog(@"=== dispatch #%d ===", c);
-    PLog(@"class=%@ super=%@", NSStringFromClass([arg1 class]), NSStringFromClass([arg1 superclass]));
-    PLog(@"description: %@", [arg1 performSelector:@selector(description)]);
-    unsigned int pc = 0;
-    objc_property_t *props = class_copyPropertyList([arg1 class], &pc);
-    PLog(@"property count=%u", pc);
-    for (unsigned int p = 0; p < pc; p++) {
-        NSString *key = @(property_getName(props[p]));
-        @try { PLog(@"    %@ = %@", key, [arg1 valueForKey:key]); }
-        @catch (NSException *e) { PLog(@"    %@ = <KVC err>", key); }
+static int gDumps = 0;
+
+%hook UIMutableApplicationSceneSettings
+-(void)setDeactivationReasons:(unsigned long long)arg1 {
+    if (gDumps < 6) {
+        gDumps++;
+        PLog(@"=== setDeactivationReasons #%d value=%llu ===", gDumps, arg1);
+        PLog(@"class=%@", NSStringFromClass([self class]));
+        // candidate identity selectors
+        NSDictionary *cands = @{@"representedApplicationBundleIdentifier": @"representedApplicationBundleIdentifier",
+                                @"applicationBundleIdentifier": @"applicationBundleIdentifier",
+                                @"bundleIdentifier": @"bundleIdentifier",
+                                @"applicationIdentifier": @"applicationIdentifier",
+                                @"sceneID": @"sceneID",
+                                @"sceneIdentifier": @"sceneIdentifier"};
+        [cands enumerateKeysAndObjectsUsingBlock:^(id k, id sel, BOOL *stop) {
+            @try {
+                if ([(id)self respondsToSelector:NSSelectorFromString(sel)]) {
+                    id v = [(id)self performSelector:NSSelectorFromString(sel)];
+                    PLog(@"  %@ = %@", k, v);
+                }
+            } @catch (NSException *e) { }
+        }];
+        // full property dump (first two only, keep log small)
+        if (gDumps <= 2) {
+            unsigned int pc = 0;
+            objc_property_t *props = class_copyPropertyList([self class], &pc);
+            PLog(@"  properties (%u):", pc);
+            for (unsigned int i = 0; i < pc; i++) {
+                NSString *key = @(property_getName(props[i]));
+                @try { PLog(@"    %@ = %@", key, [self valueForKey:key]); }
+                @catch (NSException *e) { PLog(@"    %@ = <err>", key); }
+            }
+            if (props) free(props);
+            PLog(@"  description: %@", [self performSelector:@selector(description)]);
+        }
     }
-    if (props) free(props);
-    PLog(@"--- end dump ===");
-}
-
-%hook SBUserNotificationCenter
-+(void)dispatchUserNotification:(id)arg1 flags:(int)arg2 replyPort:(unsigned)arg3 auditToken:(id)arg4 {
-    dumpPayload(arg1);
-    %orig;
-}
-%end
-
-%hook BBServer
--(void)publishBulletinRequest:(id)bulletin destinations:(unsigned long long)destinations {
-    @try {
-        NSString *sec = nil;
-        @try { sec = [bulletin valueForKey:@"sectionIdentifier"]; } @catch (NSException *e) {}
-        NSString *first = [sec isKindOfClass:[NSString class]] ? sec : [bulletin performSelector:@selector(description)];
-        if ([first length] > 120) first = [first substringToIndex:120];
-        PLog(@">>> BBServer publish: section=%@ destinations=%llu", first, destinations);
-    } @catch (NSException *e) { PLog(@">>> BBServer publish dump EX: %@", e); }
     %orig;
 }
 %end
 
 %ctor {
     @autoreleasepool {
-        PLog(@"========== WXRelayProbe 1.1.0 loaded, pid=%d", getpid());
-        PLog(@"SBUserNotificationCenter -> %@", objc_getClass("SBUserNotificationCenter") ? @"EXISTS" : @"MISSING");
+        PLog(@"========== WXRelayProbe 1.2.0 loaded, pid=%d", getpid());
+        PLog(@"UIMutableApplicationSceneSettings -> %@", objc_getClass("UIMutableApplicationSceneSettings") ? @"EXISTS" : @"MISSING");
     }
 }
