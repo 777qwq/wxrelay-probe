@@ -65,21 +65,26 @@ static void setKVC(id obj, NSString *key, id val) {
 }
 %end
 
+static id gDestinations_obj(void);
+static id gDestObj = nil;
 static void runOwnBulletinTest(void);
 
 static unsigned long long gDestMask = 0;
 static id gBBServer = nil;
 static dispatch_queue_t gBBQueue = nil;
+static id gSound = nil;
 
 %hook BBServer
 -(void)publishBulletinRequest:(id)bulletin destinations:(unsigned long long)destinations {
     PLog(@">>> publishBulletinRequest: %@ destinations=%llu", [bulletin performSelector:@selector(description)], destinations);
+    @try { id s = [bulletin valueForKey:@"sound"]; if (s && !gSound) { gSound = s; PLog(@"sound captured: %@", s); } } @catch (NSException *e) {}
     if (!gBBServer && destinations != 0) {
         gBBServer = (id)self;
         gDestMask = destinations;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
         gBBQueue = dispatch_get_current_queue();
+        gDestObj = [[NSNumber numberWithUnsignedLongLong:destinations] retain];
 #pragma clang diagnostic pop
         PLog(@"BBServer captured, mask=0x%llx queue=%@", destinations, gBBQueue);
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20*NSEC_PER_SEC)), gBBQueue, ^{
@@ -103,10 +108,10 @@ static void runOwnBulletinTest(void) {
         setKVC(b, @"publicationDate", now);
         setKVC(b, @"date", now);
         setKVC(b, @"lastInterruptDate", now);
-        setKVC(b, @"updatedAt", now);
         setKVC(b, @"recordID", [[NSUUID UUID] UUIDString]);
         setKVC(b, @"publisherBulletinID", [[NSUUID UUID] UUIDString]);
         setKVC(b, @"bulletinID", [[NSUUID UUID] UUIDString]);
+        if (gSound) setKVC(b, @"sound", gSound);
         Class actCls = objc_getClass("BBAction");
         id action = nil;
         if ([actCls respondsToSelector:@selector(actionWithLaunchBundleID:callblock:)])
@@ -119,12 +124,25 @@ static void runOwnBulletinTest(void) {
         void (*fn)(id, SEL, id, unsigned long long) = (void (*)(id, SEL, id, unsigned long long))imp;
         fn(gBBServer, sel, b, gDestMask);
         PLog(@"#### own bulletin posted with mask 0x%llx", gDestMask);
+        // lock-screen variant: 3-arg alwaysToLockScreen if exists
+        SEL sel2 = @selector(publishBulletin:destinations:alwaysToLockScreen:);
+        if ([gBBServer respondsToSelector:sel2]) {
+            setKVC(b, @"recordID", [[NSUUID UUID] UUIDString]);
+            setKVC(b, @"publisherBulletinID", [[NSUUID UUID] UUIDString]);
+            setKVC(b, @"bulletinID", [[NSUUID UUID] UUIDString]);
+            IMP imp2 = [gBBServer methodForSelector:sel2];
+            void (*fn2)(id, SEL, id, id, BOOL) = (void (*)(id, SEL, id, id, BOOL))imp2;
+            fn2(gBBServer, sel2, b, gDestObj, YES);
+            PLog(@"#### lockscreen variant posted");
+        } else {
+            PLog(@"#### 3-arg alwaysToLockScreen NOT available");
+        }
     } @catch (NSException *e) { PLog(@"#### own bulletin EX: %@", e); }
 }
 
 %ctor {
     @autoreleasepool {
-        PLog(@"========== WXRelayProbe 0.8.0 loaded, pid=%d", getpid());
+        PLog(@"========== WXRelayProbe 0.9.0 loaded, pid=%d", getpid());
         const char *cls[] = {"SBDashBoardNotificationDestination", "NCNotificationContent", "NCNotificationAction", "NCBulletinActionRunner"};
         for (unsigned long i = 0; i < sizeof(cls)/sizeof(cls[0]); i++)
             PLog(@"class %@ -> %@", @(cls[i]), objc_getClass(cls[i]) ? @"EXISTS" : @"MISSING");
