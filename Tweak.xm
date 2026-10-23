@@ -9,7 +9,9 @@
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 #import <sys/sysctl.h>
-#import <libproc.h>
+// libproc.h 不在 SDK，手工声明（符号经 libSystem 可解析）
+#define PROC_PIDPATHINFO_MAXSIZE 4096
+extern int proc_pidpath(int pid, void *buffer, unsigned int buffersize);
 #import <objc/message.h>
 
 static NSString *kLogPath = @"/var/mobile/Library/Logs/WXRelayProbe.log";

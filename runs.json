@@ -1,28 +1,28 @@
 {
-  "total_count": 35,
+  "total_count": 36,
   "workflow_runs": [
     {
-      "id": 39986374987,
+      "id": 39989872889,
       "name": "Build WXRelayProbe",
-      "node_id": "WFR_kwLOVURL2M8AAAAJT1-pSw",
+      "node_id": "WFR_kwLOVURL2M8AAAAJT5UI-Q",
       "head_branch": "main",
-      "head_sha": "0892924d626b6723cae746e69f78d5909d0ebf2f",
+      "head_sha": "1eb2e5a245b159e83cee00f669523f20d7df8538",
       "path": ".github/workflows/build.yml",
-      "display_title": "CI: roothide flavor",
-      "run_number": 35,
+      "display_title": "CI: use roothide theos fork (per WXRelay release.yml)",
+      "run_number": 36,
       "event": "push",
-      "status": "queued",
+      "status": "in_progress",
       "conclusion": null,
       "workflow_id": 393613938,
-      "check_suite_id": 108383869943,
-      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZPC6b9w",
-      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39986374987",
-      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39986374987",
+      "check_suite_id": 108393667564,
+      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZPMQb7A",
+      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39989872889",
+      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39989872889",
       "pull_requests": [
 
       ],
-      "created_at": "2026-10-23T16:23:34Z",
-      "updated_at": "2026-10-23T16:23:34Z",
+      "created_at": "2026-10-23T16:48:48Z",
+      "updated_at": "2026-10-23T16:48:52Z",
       "actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -48,7 +48,7 @@
       "referenced_workflows": [
 
       ],
-      "run_started_at": "2026-10-23T16:23:34Z",
+      "run_started_at": "2026-10-23T16:48:48Z",
       "triggering_actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -70,19 +70,19 @@
         "user_view_type": "public",
         "site_admin": false
       },
-      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39986374987/jobs",
-      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39986374987/logs",
-      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108383869943",
-      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39986374987/artifacts",
-      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39986374987/cancel",
-      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39986374987/rerun",
+      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39989872889/jobs",
+      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39989872889/logs",
+      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108393667564",
+      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39989872889/artifacts",
+      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39989872889/cancel",
+      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39989872889/rerun",
       "previous_attempt_url": null,
       "workflow_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/workflows/393613938",
       "head_commit": {
-        "id": "0892924d626b6723cae746e69f78d5909d0ebf2f",
-        "tree_id": "0b2627528c6a8db3c29b9dce8cd018eb5ec0f948",
-        "message": "CI: roothide flavor",
-        "timestamp": "2026-10-23T16:23:31Z",
+        "id": "1eb2e5a245b159e83cee00f669523f20d7df8538",
+        "tree_id": "c4334d46181fbc58566a7d7b77b86c34ef897aeb",
+        "message": "CI: use roothide theos fork (per WXRelay release.yml)",
+        "timestamp": "2026-10-23T16:48:44Z",
         "author": {
           "name": "wxrelay",
           "email": "bot@wxrelay"
