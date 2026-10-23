@@ -29,7 +29,7 @@ static int gDumps = 0;
     if (gDumps < 6) {
         gDumps++;
         PLog(@"=== setDeactivationReasons #%d value=%llu ===", gDumps, arg1);
-        PLog(@"class=%@", NSStringFromClass([self class]));
+        PLog(@"class=%@", NSStringFromClass([(id)self class]));
         // candidate identity selectors
         NSDictionary *cands = @{@"representedApplicationBundleIdentifier": @"representedApplicationBundleIdentifier",
                                 @"applicationBundleIdentifier": @"applicationBundleIdentifier",
@@ -50,7 +50,7 @@ static int gDumps = 0;
         // full property dump (first two only, keep log small)
         if (gDumps <= 2) {
             unsigned int pc = 0;
-            objc_property_t *props = class_copyPropertyList([self class], &pc);
+            objc_property_t *props = class_copyPropertyList([(id)self class], &pc);
             PLog(@"  properties (%u):", pc);
             for (unsigned int i = 0; i < pc; i++) {
                 NSString *key = @(property_getName(props[i]));
@@ -58,7 +58,7 @@ static int gDumps = 0;
                 @catch (NSException *e) { PLog(@"    %@ = <err>", key); }
             }
             if (props) free(props);
-            PLog(@"  description: %@", [(id)self performSelector:@selector(description)]);
+            PLog(@"  description: %@", [(id)self debugDescription]);
         }
     }
     %orig;
