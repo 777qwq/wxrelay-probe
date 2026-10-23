@@ -97,9 +97,23 @@ static void setKVC(id obj, NSString *key, id val) {
 
 %ctor {
     @autoreleasepool {
-        PLog(@"========== WXRelayProbe 0.2.0 loaded, pid=%d", getpid());
-        const char *cls[] = {"SBDashBoardNotificationDestination", "NCNotificationContent", "NCNotificationAction"};
+        PLog(@"========== WXRelayProbe 0.4.0 loaded, pid=%d", getpid());
+        const char *cls[] = {"SBDashBoardNotificationDestination", "NCNotificationContent", "NCNotificationAction", "NCBulletinActionRunner"};
         for (unsigned long i = 0; i < sizeof(cls)/sizeof(cls[0]); i++)
             PLog(@"class %@ -> %@", @(cls[i]), objc_getClass(cls[i]) ? @"EXISTS" : @"MISSING");
+        Class runner = objc_getClass("NCBulletinActionRunner");
+        if (runner) {
+            unsigned int mc = 0;
+            Method *ms = class_copyMethodList(object_getClass(runner), &mc);
+            NSMutableString *names = [NSMutableString string];
+            for (unsigned int i = 0; i < mc; i++) [names appendFormat:@"%@; ", NSStringFromSelector(method_getName(ms[i]))];
+            PLog(@"Runner class methods(%u): %@", mc, names);
+            free(ms);
+            ms = class_copyMethodList(runner, &mc);
+            names = [NSMutableString string];
+            for (unsigned int i = 0; i < mc; i++) [names appendFormat:@"%@; ", NSStringFromSelector(method_getName(ms[i]))];
+            PLog(@"Runner instance methods(%u): %@", mc, names);
+            free(ms);
+        }
     }
 }
