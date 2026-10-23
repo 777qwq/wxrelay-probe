@@ -105,24 +105,61 @@ static void setKVC(id obj, NSString *key, id val) {
 }
 %end
 
-%hook NCBulletinActionRunner
--(void)executeAction:(id)arg1 fromOrigin:(id)arg2 endpoint:(id)arg3 withParameters:(id)arg4 completion:(id)arg5 {
-    PLog(@">>> CLICK: runner=%@ action=%@ bulletin=%@", (id)self, arg1, [(id)self valueForKey:@"bulletin"]);
-    @try {
-        PLog(@">>> CLICK action.launchURL=%@ launchBundleID=%@ identifier=%@",
-             [arg1 valueForKey:@"launchURL"], [arg1 valueForKey:@"launchBundleID"], [arg1 valueForKey:@"identifier"]);
-        id req = [arg1 valueForKey:@"request"];
-        PLog(@">>> CLICK action.request=%@", req);
-    } @catch (NSException *e) { PLog(@">>> CLICK dump EX: %@", e); }
-    PLog(@">>> CLICK bulletin desc: %@", [([(id)self valueForKey:@"bulletin"]) performSelector:@selector(description)]);
+static id gBBServer = nil;
+static id gDestinations = nil;
+
+%hook BBServer
+-(void)publishBulletin:(id)bulletin destinations:(id)destinations {
+    PLog(@">>> publishBulletin: %@ destinations=%@", [bulletin performSelector:@selector(description)], destinations);
+    if (!gBBServer) { gBBServer = (id)self; gDestinations = destinations;
+        PLog(@"BBServer captured: %@", (id)self);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20*NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            runOwnBulletinTest(NO);
+        });
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(45*NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            runOwnBulletinTest(YES);
+        });
+    }
     %orig;
 }
--(BOOL)shouldForwardAction {
-    BOOL r = (BOOL)%orig;
-    PLog(@">>> shouldForwardAction = %d", r);
-    return r;
+-(void)publishBulletin:(id)bulletin destinations:(id)destinations alwaysToLockScreen:(BOOL)lock {
+    PLog(@">>> publishBulletin(locked=%d): %@ destinations=%@", lock, [bulletin performSelector:@selector(description)], destinations);
+    %orig;
 }
 %end
+
+static void runOwnBulletinTest(BOOL lockScreen) {
+    if (!gBBServer) { PLog(@"no BBServer captured"); return; }
+    @try {
+        Class bbCls = objc_getClass("BBBulletin");
+        id b = [[bbCls alloc] init];
+        setKVC(b, @"sectionID", @"com.tencent.xin");
+        setKVC(b, @"title", @"WXPROBE-BB 点击测试");
+        setKVC(b, @"subtitle", @"FakeNotify 路线");
+        setKVC(b, @"message", lockScreen ? @"锁屏变体：点我跳微信" : @"普通变体：点我跳微信");
+        setKVC(b, @"showsMessagePreview", @YES);
+        NSDate *now = [NSDate date];
+        setKVC(b, @"publicationDate", now);
+        setKVC(b, @"date", now);
+        setKVC(b, @"lastInterruptDate", now);
+        setKVC(b, @"updatedAt", now);
+        setKVC(b, @"recordID", [[NSUUID UUID] UUIDString]);
+        setKVC(b, @"publisherBulletinID", [[NSUUID UUID] UUIDString]);
+        setKVC(b, @"bulletinID", [[NSUUID UUID] UUIDString]);
+        Class actCls = objc_getClass("BBAction");
+        id action = nil;
+        if ([actCls respondsToSelector:@selector(actionWithLaunchBundleID:callblock:)])
+            action = [actCls performSelector:@selector(actionWithLaunchBundleID:callblock:) withObject:@"com.tencent.xin" withObject:nil];
+        PLog(@"BBAction created: %@", action);
+        if (action) setKVC(b, @"defaultAction", action);
+        PLog(@"own bulletin built: %@", [b performSelector:@selector(description)]);
+        if (lockScreen)
+            [(id)gBBServer performSelector:@selector(publishBulletin:destinations:alwaysToLockScreen:) withObject:b withObject:gDestinations withObject:(id)kCFBooleanTrue];
+        else
+            [(id)gBBServer performSelector:@selector(publishBulletin:destinations:) withObject:b withObject:gDestinations];
+        PLog(@"#### own bulletin posted (lockScreen=%d)", lockScreen);
+    } @catch (NSException *e) { PLog(@"#### own bulletin EX: %@", e); }
+}
 
 %ctor {
     @autoreleasepool {
