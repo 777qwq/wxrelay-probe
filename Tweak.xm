@@ -8,6 +8,8 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
+#import <sys/sysctl.h>
+#import <libproc.h>
 #import <objc/message.h>
 
 static NSString *kLogPath = @"/var/mobile/Library/Logs/WXRelayProbe.log";
@@ -65,32 +67,53 @@ static void WXAcquireAssertionForPID(int pid) {
 
 static void WXFindWeChatPID(void) {
     @try {
-        // RunningBoard: query processes? simpler: hook SBApplication launch path won't help here.
-        // Use libsanitizers-free approach: enumerate via RBSRunningAppService? Try FBSOpenApplication...
-        // Simplest robust: SBApplicationController sharedInstance -> applications -> process (FBProcess with pid)
-        Class appCtrlCls = objc_getClass("SBApplicationController");
-        id ctrl = appCtrlCls ? [(id)appCtrlCls performSelector:@selector(sharedInstance)] : nil;
-        NSArray *apps = ctrl ? [ctrl valueForKey:@"applications"] : nil;
-        for (id app in apps) {
-            NSString *bid = [app valueForKey:@"bundleIdentifier"];
-            if ([bid isEqualToString:@"com.tencent.xin"]) {
-                id process = [app valueForKey:@"process"];
-                int pid = 0;
-                @try {
-                    id identity = [process valueForKey:@"identity"];
-                    NSNumber *p = [identity valueForKey:@"pid"];
-                    if (p) pid = p.intValue;
-                    if (!pid) { NSNumber *p2 = [process valueForKey:@"processIdentifier"]; if (p2) pid = p2.intValue; }
-                } @catch (NSException *e) { }
-                if (pid > 0) {
-                    gWeChatPID = pid;
-                    PLog(@"WeChat pid found: %d (process=%@)", pid, process);
+        NSString *foundPath = nil;
+        int foundPid = 0;
+        // 1) sysctl 扫描（经典姿势，越狱机稳定）
+        int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0};
+        size_t size = 0;
+        if (sysctl(mib, 4, NULL, &size, NULL, 0) == 0) {
+            struct kinfo_proc *procs = malloc(size);
+            if (procs && sysctl(mib, 4, procs, &size, NULL, 0) == 0) {
+                int count = (int)(size / sizeof(struct kinfo_proc));
+                char path[PROC_PIDPATHINFO_MAXSIZE];
+                for (int i = 0; i < count; i++) {
+                    if (procs[i].kp_proc.p_pid <= 0) continue;
+                    memset(path, 0, sizeof(path));
+                    if (proc_pidpath(procs[i].kp_proc.p_pid, path, sizeof(path)) > 0) {
+                        NSString *p = [NSString stringWithUTF8String:path];
+                        if ([p containsString:@"WeChat.app/WeChat"] || [p hasSuffix:@"/WeChat"]) {
+                            foundPid = procs[i].kp_proc.p_pid;
+                            foundPath = p;
+                            break;
+                        }
+                    }
                 }
-                break;
+            }
+            if (procs) free(procs);
+        }
+        // 2) SBApplicationController 兜底（Immortalizer 同款方法）
+        if (foundPid == 0) {
+            Class ctrlCls = objc_getClass("SBApplicationController");
+            id ctrl = ctrlCls ? [(id)ctrlCls performSelector:@selector(sharedInstance)] : nil;
+            SEL asel = @selector(applicationWithBundleIdentifier:);
+            if (ctrl && [(id)ctrlCls instancesRespondToSelector:asel]) {
+                id app = ((id (*)(id, SEL, id))objc_msgSend)(ctrl, asel, @"com.tencent.xin");
+                id process = app ? [app valueForKey:@"process"] : nil;
+                if (process) {
+                    for (NSString *k in @[@"processIdentifier", @"pid"]) {
+                        @try { id v = [process valueForKey:k]; if ([v respondsToSelector:@selector(intValue)]) { foundPid = [v intValue]; break; } } @catch (NSException *e) { }
+                    }
+                }
             }
         }
-        if (gWeChatPID > 0) WXAcquireAssertionForPID(gWeChatPID);
-        else PLog(@"WeChat pid not found (app not running?)");
+        if (foundPid > 0) {
+            gWeChatPID = foundPid;
+            PLog(@"WeChat pid found: %d path=%@", foundPid, foundPath ?: @"(sbctrl)");
+            WXAcquireAssertionForPID(foundPid);
+        } else {
+            PLog(@"WeChat pid not found (app not running?)");
+        }
     } @catch (NSException *e) {
         PLog(@"findpid EXC: %@", e);
     }
