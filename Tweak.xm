@@ -105,10 +105,7 @@ static void setKVC(id obj, NSString *key, id val) {
 }
 %end
 
-static void runOwnBulletinTest(BOOL lockScreen);
-
-static id gBBServer = nil;
-static id gDestinations = nil;
+static void runOwnBulletinTest(void);
 
 static unsigned long long gDestMask = 0;
 static id gBBServer = nil;
