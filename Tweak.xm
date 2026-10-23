@@ -107,7 +107,7 @@ static void phase4NewId(void) {
 -(void)_updateActiveDestinations {
     %orig;
     PLog(@"_updateActiveDestinations: banner=%@ dashBoard=%@",
-         [self valueForKey:@"bannerDestination"], [self valueForKey:@"dashBoardDestination"]);
+         [(id)self valueForKey:@"bannerDestination"], [(id)self valueForKey:@"dashBoardDestination"]);
 }
 -(id)dashBoardDestination {
     static BOOL once = NO;
