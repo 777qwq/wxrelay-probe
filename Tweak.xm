@@ -33,29 +33,6 @@ static void setKVC(id obj, NSString *key, id val) {
 }
 
 
-%hook SBNotificationBannerDestination
--(void)postNotificationRequest:(id)arg1 {
-    PLog(@"=== postNotificationRequest: %@", [arg1 performSelector:@selector(description)]);
-    if (!gDest) gDest = self;
-    static int gCount = 0;
-    int n = ++gCount;
-    NSString *sec = nil;
-    @try { sec = [arg1 valueForKey:@"sectionIdentifier"]; } @catch (id e) {}
-    // only mutate fresh SMS requests (stable template source), alternating strategy
-    if ([sec isEqualToString:@"com.apple.MobileSMS"] && n <= 2) {
-        @try {
-            setKVC(arg1, @"sectionIdentifier", @"com.tencent.xin");
-            setKVC(arg1, @"notificationIdentifier", [[NSUUID UUID] UUIDString]);
-            id content = [arg1 valueForKey:@"content"];
-            setKVC(content, @"title", [NSString stringWithFormat:@"WXPROBE-%d 点击测试", n]);
-            setKVC(content, @"message", [NSString stringWithFormat:@"策略%d：点击我验证跳转", n]);
-            id oldAction = [arg1 valueForKey:@"defaultAction"];
-            setKVC(oldAction, @"launchURL", @"weixin://");
-            PLog(@"mutate#%d in-flight: oldAction.launchURL=weixin:// (mutated ORIGINAL action)", n);
-        } @catch (NSException *e) { PLog(@"mutate#%d EX: %@", n, e); }
-    }
-    %orig;
-}
 %end
 
 %hook SBNCNotificationDispatcher
@@ -72,21 +49,7 @@ static void setKVC(id obj, NSString *key, id val) {
 }
 %end
 
-%hook SBNotificationBannerDestination
--(void)modifyNotificationRequest:(id)arg1 {
-    PLog(@"### modifyNotificationRequest (coalesce path): %@", [arg1 performSelector:@selector(description)]);
-    @try {
-        id content = [arg1 valueForKey:@"content"];
-        setKVC(content, @"title", @"WXPROBE-MOD 点击测试");
-        setKVC(content, @"message", @"modify路径：点击我验证跳转");
-        id oldAction = [arg1 valueForKey:@"defaultAction"];
-        setKVC(oldAction, @"launchURL", @"weixin://");
-        setKVC(arg1, @"notificationIdentifier", [[NSUUID UUID] UUIDString]);
-        PLog(@"### modify path mutated in-flight");
-    } @catch (NSException *e) { PLog(@"### modify EX: %@", e); }
-    %orig;
-}
-%end
+
 
 %hook SBNotificationBannerDestination
 -(void)notificationRequestPresenter:(id)arg1 executeAction:(id)arg2 withParameters:(id)arg3 completion:(id)arg4 {
@@ -109,6 +72,7 @@ static void runOwnBulletinTest(void);
 
 static unsigned long long gDestMask = 0;
 static id gBBServer = nil;
+static dispatch_queue_t gBBQueue = nil;
 
 %hook BBServer
 -(void)publishBulletinRequest:(id)bulletin destinations:(unsigned long long)destinations {
@@ -116,8 +80,9 @@ static id gBBServer = nil;
     if (!gBBServer && destinations != 0) {
         gBBServer = (id)self;
         gDestMask = destinations;
-        PLog(@"BBServer captured, mask=0x%llx", destinations);
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20*NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        gBBQueue = dispatch_get_current_queue();
+        PLog(@"BBServer captured, mask=0x%llx queue=%@", destinations, gBBQueue);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20*NSEC_PER_SEC)), gBBQueue, ^{
             runOwnBulletinTest();
         });
     }
@@ -159,7 +124,7 @@ static void runOwnBulletinTest(void) {
 
 %ctor {
     @autoreleasepool {
-        PLog(@"========== WXRelayProbe 0.4.0 loaded, pid=%d", getpid());
+        PLog(@"========== WXRelayProbe 0.8.0 loaded, pid=%d", getpid());
         const char *cls[] = {"SBDashBoardNotificationDestination", "NCNotificationContent", "NCNotificationAction", "NCBulletinActionRunner"};
         for (unsigned long i = 0; i < sizeof(cls)/sizeof(cls[0]); i++)
             PLog(@"class %@ -> %@", @(cls[i]), objc_getClass(cls[i]) ? @"EXISTS" : @"MISSING");
