@@ -32,9 +32,6 @@ static void setKVC(id obj, NSString *key, id val) {
     @catch (NSException *e) { PLog(@"KVC SET %@ FAIL: %@", key, e.reason); }
 }
 
-
-%end
-
 %hook SBNCNotificationDispatcher
 -(void)_updateActiveDestinations {
     %orig;
