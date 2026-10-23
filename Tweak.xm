@@ -39,8 +39,10 @@ static int gDumps = 0;
                                 @"sceneIdentifier": @"sceneIdentifier"};
         [cands enumerateKeysAndObjectsUsingBlock:^(id k, id sel, BOOL *stop) {
             @try {
-                if ([(id)self respondsToSelector:NSSelectorFromString(sel)]) {
-                    id v = [(id)self performSelector:NSSelectorFromString(sel)];
+                SEL s2 = NSSelectorFromString(sel);
+                if ([(id)self respondsToSelector:s2]) {
+                    IMP imp = [(id)self methodForSelector:s2];
+                    id v = ((id (*)(id, SEL))imp)((id)self, s2);
                     PLog(@"  %@ = %@", k, v);
                 }
             } @catch (NSException *e) { }
@@ -52,11 +54,11 @@ static int gDumps = 0;
             PLog(@"  properties (%u):", pc);
             for (unsigned int i = 0; i < pc; i++) {
                 NSString *key = @(property_getName(props[i]));
-                @try { PLog(@"    %@ = %@", key, [self valueForKey:key]); }
+                @try { PLog(@"    %@ = %@", key, [(id)self valueForKey:key]); }
                 @catch (NSException *e) { PLog(@"    %@ = <err>", key); }
             }
             if (props) free(props);
-            PLog(@"  description: %@", [self performSelector:@selector(description)]);
+            PLog(@"  description: %@", [(id)self performSelector:@selector(description)]);
         }
     }
     %orig;

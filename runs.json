@@ -1,28 +1,28 @@
 {
-  "total_count": 26,
+  "total_count": 27,
   "workflow_runs": [
     {
-      "id": 39921996700,
+      "id": 39933001725,
       "name": "Build WXRelayProbe",
-      "node_id": "WFR_kwLOVURL2M8AAAAJS4lTnA",
+      "node_id": "WFR_kwLOVURL2M8AAAAJTDE__Q",
       "head_branch": "main",
-      "head_sha": "214a02c5af974e2287aa7c3ea3c81878e46ffa43",
+      "head_sha": "3bf3e776221299a1a4b23beaadef44b706809c29",
       "path": ".github/workflows/build.yml",
-      "display_title": "v1.1.0: BBServer entry logging",
-      "run_number": 26,
+      "display_title": "v1.2.0: identify app in deactivation flow",
+      "run_number": 27,
       "event": "push",
       "status": "in_progress",
       "conclusion": null,
       "workflow_id": 393613938,
-      "check_suite_id": 108203631817,
-      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZMXBkyQ",
-      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39921996700",
-      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39921996700",
+      "check_suite_id": 108233685131,
+      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZMzr4iw",
+      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39933001725",
+      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39933001725",
       "pull_requests": [
 
       ],
-      "created_at": "2026-10-23T08:03:45Z",
-      "updated_at": "2026-10-23T08:03:49Z",
+      "created_at": "2026-10-23T09:35:44Z",
+      "updated_at": "2026-10-23T09:35:48Z",
       "actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -48,7 +48,7 @@
       "referenced_workflows": [
 
       ],
-      "run_started_at": "2026-10-23T08:03:45Z",
+      "run_started_at": "2026-10-23T09:35:44Z",
       "triggering_actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -70,19 +70,19 @@
         "user_view_type": "public",
         "site_admin": false
       },
-      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39921996700/jobs",
-      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39921996700/logs",
-      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108203631817",
-      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39921996700/artifacts",
-      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39921996700/cancel",
-      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39921996700/rerun",
+      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39933001725/jobs",
+      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39933001725/logs",
+      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108233685131",
+      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39933001725/artifacts",
+      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39933001725/cancel",
+      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39933001725/rerun",
       "previous_attempt_url": null,
       "workflow_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/workflows/393613938",
       "head_commit": {
-        "id": "214a02c5af974e2287aa7c3ea3c81878e46ffa43",
-        "tree_id": "ec5d070b5d421012cc86ef1aa5ff7002c3616e00",
-        "message": "v1.1.0: BBServer entry logging",
-        "timestamp": "2026-10-23T08:03:40Z",
+        "id": "3bf3e776221299a1a4b23beaadef44b706809c29",
+        "tree_id": "e32f677de39d6157cc39bb4490e3b7bacbb17188",
+        "message": "v1.2.0: identify app in deactivation flow",
+        "timestamp": "2026-10-23T09:35:40Z",
         "author": {
           "name": "wxrelay",
           "email": "bot@wxrelay"
