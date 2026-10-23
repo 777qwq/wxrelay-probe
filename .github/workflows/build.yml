@@ -10,20 +10,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Theos
+      - name: Prepare roothide Theos
         run: |
-          export THEOS=$HOME/theos
-          brew install ldid xz make 2>/dev/null || true
-          git clone --depth 1 --recursive --shallow-submodules https://github.com/theos/theos.git $THEOS
-          curl -sL https://github.com/theos/sdks/archive/refs/heads/master.zip -o sdks.zip
-          unzip -q sdks.zip
-          mkdir -p $THEOS/sdks
-          ln -s "$PWD/sdks-master/iPhoneOS16.5.sdk" $THEOS/sdks/iPhoneOS16.5.sdk
-          echo "THEOS=$THEOS" >> $GITHUB_ENV
+          sudo mkdir -p /opt
+          if [ ! -d /opt/theos ]; then
+            sudo git clone --depth 1 --recursive https://github.com/roothide/theos.git /opt/theos
+          else
+            cd /opt/theos
+            sudo git fetch --depth 1 origin master
+            sudo git reset --hard FETCH_HEAD
+            sudo git submodule update --init --recursive
+          fi
+          sudo ln -sfn /opt/theos/vendor/include /opt/include
+          test -f /opt/theos/vendor/include/roothide.h
+          if [ ! -d /opt/theos/sdks/iPhoneOS16.5.sdk ]; then
+            sudo git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git /tmp/sdks
+            cd /tmp/sdks && sudo git sparse-checkout set iPhoneOS16.5.sdk
+            sudo cp -R /tmp/sdks/iPhoneOS16.5.sdk /opt/theos/sdks/
+          fi
+          test -d /opt/theos/sdks/iPhoneOS16.5.sdk
+          echo "THEOS=/opt/theos" >> $GITHUB_ENV
           echo "PATH=/opt/homebrew/bin:/usr/local/bin:$PATH" >> $GITHUB_ENV
 
       - name: Build
         run: |
+          brew install ldid xz make 2>/dev/null || true
           gmake package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide > build.log 2>&1 || { tail -60 build.log; exit 1; }
           mkdir -p out && cp packages/*.deb out/
 
