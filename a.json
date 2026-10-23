@@ -2,23 +2,23 @@
   "total_count": 1,
   "artifacts": [
     {
-      "id": 12479534034,
-      "node_id": "MDg6QXJ0aWZhY3QxMjQ3OTUzNDAzNA==",
+      "id": 12480452154,
+      "node_id": "MDg6QXJ0aWZhY3QxMjQ4MDQ1MjE1NA==",
       "name": "WXRelayProbe-deb",
-      "size_in_bytes": 15611,
-      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/artifacts/12479534034",
-      "archive_download_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/artifacts/12479534034/zip",
+      "size_in_bytes": 16108,
+      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/artifacts/12480452154",
+      "archive_download_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/artifacts/12480452154/zip",
       "expired": false,
-      "digest": "sha256:3a554ea8f1de8a8e14992a9c0b1baf13fc3762d7d95b8d238d88d7432180d267",
-      "created_at": "2026-10-23T05:15:10Z",
-      "updated_at": "2026-10-23T05:15:10Z",
-      "expires_at": "2027-01-21T05:14:08Z",
+      "digest": "sha256:3ff369b7b0f569b5737ecd4ee2710719480aef9e96029d75dda17bee103642b0",
+      "created_at": "2026-10-23T05:18:50Z",
+      "updated_at": "2026-10-23T05:18:50Z",
+      "expires_at": "2027-01-21T05:17:24Z",
       "workflow_run": {
-        "id": 39904627359,
+        "id": 39904931055,
         "repository_id": 1430539224,
         "head_repository_id": 1430539224,
         "head_branch": "main",
-        "head_sha": "082122f90205a772d85f7564714a1395ef3f6431"
+        "head_sha": "9a544ccc096f67d24375917c0a13b61ba9de5752"
       }
     }
   ]

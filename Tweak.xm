@@ -88,10 +88,39 @@ static void setKVC(id obj, NSString *key, id val) {
 }
 %end
 
+%hook SBNotificationBannerDestination
+-(void)notificationRequestPresenter:(id)arg1 executeAction:(id)arg2 withParameters:(id)arg3 completion:(id)arg4 {
+    PLog(@">>> DEST click: presenter=%@ action=%@ params=%@", arg1, arg2, arg3);
+    @try {
+        PLog(@">>> DEST action.launchURL=%@ launchBundleID=%@", [arg2 valueForKey:@"launchURL"], [arg2 valueForKey:@"launchBundleID"]);
+    } @catch (NSException *e) { PLog(@">>> DEST dump EX: %@", e); }
+    %orig;
+}
+%end
+
 %hook SBUserNotificationCenter
 +(void)dispatchUserNotification:(id)arg1 flags:(int)arg2 replyPort:(unsigned)arg3 auditToken:(id)arg4 {
     PLog(@"<<< dispatchUserNotification entry: %@ flags=%d", [arg1 performSelector:@selector(description)], arg2);
     %orig;
+}
+%end
+
+%hook NCBulletinActionRunner
+-(void)executeAction:(id)arg1 fromOrigin:(id)arg2 endpoint:(id)arg3 withParameters:(id)arg4 completion:(id)arg5 {
+    PLog(@">>> CLICK: runner=%@ action=%@ bulletin=%@", self, arg1, [self valueForKey:@"bulletin"]);
+    @try {
+        PLog(@">>> CLICK action.launchURL=%@ launchBundleID=%@ identifier=%@",
+             [arg1 valueForKey:@"launchURL"], [arg1 valueForKey:@"launchBundleID"], [arg1 valueForKey:@"identifier"]);
+        id req = [arg1 valueForKey:@"request"];
+        PLog(@">>> CLICK action.request=%@", req);
+    } @catch (NSException *e) { PLog(@">>> CLICK dump EX: %@", e); }
+    PLog(@">>> CLICK bulletin desc: %@", [([self valueForKey:@"bulletin"]) performSelector:@selector(description)]);
+    %orig;
+}
+-(BOOL)shouldForwardAction {
+    BOOL r = %orig;
+    PLog(@">>> shouldForwardAction = %d", r);
+    return r;
 }
 %end
 
