@@ -107,18 +107,18 @@ static void setKVC(id obj, NSString *key, id val) {
 
 %hook NCBulletinActionRunner
 -(void)executeAction:(id)arg1 fromOrigin:(id)arg2 endpoint:(id)arg3 withParameters:(id)arg4 completion:(id)arg5 {
-    PLog(@">>> CLICK: runner=%@ action=%@ bulletin=%@", self, arg1, [self valueForKey:@"bulletin"]);
+    PLog(@">>> CLICK: runner=%@ action=%@ bulletin=%@", (id)self, arg1, [(id)self valueForKey:@"bulletin"]);
     @try {
         PLog(@">>> CLICK action.launchURL=%@ launchBundleID=%@ identifier=%@",
              [arg1 valueForKey:@"launchURL"], [arg1 valueForKey:@"launchBundleID"], [arg1 valueForKey:@"identifier"]);
         id req = [arg1 valueForKey:@"request"];
         PLog(@">>> CLICK action.request=%@", req);
     } @catch (NSException *e) { PLog(@">>> CLICK dump EX: %@", e); }
-    PLog(@">>> CLICK bulletin desc: %@", [([self valueForKey:@"bulletin"]) performSelector:@selector(description)]);
+    PLog(@">>> CLICK bulletin desc: %@", [([(id)self valueForKey:@"bulletin"]) performSelector:@selector(description)]);
     %orig;
 }
 -(BOOL)shouldForwardAction {
-    BOOL r = %orig;
+    BOOL r = (BOOL)%orig;
     PLog(@">>> shouldForwardAction = %d", r);
     return r;
 }
