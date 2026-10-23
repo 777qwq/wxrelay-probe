@@ -12,7 +12,6 @@
 #import <objc/runtime.h>
 
 static NSString *kLogPath = @"/var/mobile/Library/Logs/WXRelayProbe.log";
-static id gReq = nil;      // captured NCNotificationRequest
 static id gDest = nil;     // captured SBNotificationBannerDestination
 
 static void PLog(NSString *fmt, ...) NS_FORMAT_FUNCTION(1, 2);
@@ -39,52 +38,6 @@ static void dumpContent(id req) {
         PLog(@"content.title=%@ | content.message=%@", [content valueForKey:@"title"], [content valueForKey:@"message"]);
         PLog(@"sectionIdentifier=%@ | notificationIdentifier=%@", [req valueForKey:@"sectionIdentifier"], [req valueForKey:@"notificationIdentifier"]);
     } @catch (NSException *e) { PLog(@"dumpContent err: %@", e); }
-}
-
-static void phase1Repost(void) {
-    PLog(@"#### PHASE1 repost original begin");
-    if (!gReq || !gDest) { PLog(@"no capture"); return; }
-    @try { [(id)gDest performSelector:@selector(postNotificationRequest:) withObject:gReq]; PLog(@"PHASE1 posted"); }
-    @catch (NSException *e) { PLog(@"PHASE1 EX: %@", e); }
-}
-
-static void phase2TextSwap(void) {
-    PLog(@"#### PHASE2 text swap begin");
-    if (!gReq || !gDest) { PLog(@"no capture"); return; }
-    @try {
-        id content = [gReq valueForKey:@"content"];
-        setKVC(content, @"title", @"WXRELAY-TEST-标题");
-        setKVC(content, @"message", @"WXRELAY-TEST-正文：这是一条克隆横幅");
-        dumpContent(gReq);
-        [(id)gDest performSelector:@selector(postNotificationRequest:) withObject:gReq];
-        PLog(@"PHASE2 posted");
-    } @catch (NSException *e) { PLog(@"PHASE2 EX: %@", e); }
-}
-
-static void phase3SectionSwap(void) {
-    PLog(@"#### PHASE3 section/URL swap begin");
-    if (!gReq || !gDest) { PLog(@"no capture"); return; }
-    @try {
-        setKVC(gReq, @"sectionIdentifier", @"com.tencent.xin");
-        setKVC(gReq, @"topLevelSectionIdentifier", @"com.tencent.xin");
-        id action = [gReq valueForKey:@"defaultAction"];
-        if (action) setKVC(action, @"launchURL", @"weixin://");
-        dumpContent(gReq);
-        [(id)gDest performSelector:@selector(postNotificationRequest:) withObject:gReq];
-        PLog(@"PHASE3 posted");
-    } @catch (NSException *e) { PLog(@"PHASE3 EX: %@", e); }
-}
-
-static void phase4NewId(void) {
-    PLog(@"#### PHASE4 new notificationId begin");
-    if (!gReq || !gDest) { PLog(@"no capture"); return; }
-    @try {
-        NSString *nid = [[NSUUID UUID] UUIDString];
-        setKVC(gReq, @"notificationIdentifier", nid);
-        setKVC(gReq, @"notificationId", nid);
-        [(id)gDest performSelector:@selector(postNotificationRequest:) withObject:gReq];
-        PLog(@"PHASE4 posted");
-    } @catch (NSException *e) { PLog(@"PHASE4 EX: %@", e); }
 }
 
 %hook SBNotificationBannerDestination

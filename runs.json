@@ -1,28 +1,28 @@
 {
-  "total_count": 6,
+  "total_count": 7,
   "workflow_runs": [
     {
-      "id": 39903449915,
+      "id": 39903645630,
       "name": "Build WXRelayProbe",
-      "node_id": "WFR_kwLOVURL2M8AAAAJSm5TOw",
+      "node_id": "WFR_kwLOVURL2M8AAAAJSnFPvg",
       "head_branch": "main",
-      "head_sha": "bd58d1f7bd1532c69ea50baca5c39fb6fb917e7b",
+      "head_sha": "237b6a2334cc76c7b0e5808832971550d09199a5",
       "path": ".github/workflows/build.yml",
-      "display_title": "v0.3.0: mutate-on-arrival, alternating click strategies",
-      "run_number": 6,
+      "display_title": "fix: int format",
+      "run_number": 7,
       "event": "push",
       "status": "in_progress",
       "conclusion": null,
       "workflow_id": 393613938,
-      "check_suite_id": 108153653448,
-      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZLnXIyA",
-      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39903449915",
-      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39903449915",
+      "check_suite_id": 108154188457,
+      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZLn3yqQ",
+      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39903645630",
+      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39903645630",
       "pull_requests": [
 
       ],
-      "created_at": "2026-10-23T05:01:17Z",
-      "updated_at": "2026-10-23T05:01:20Z",
+      "created_at": "2026-10-23T05:03:25Z",
+      "updated_at": "2026-10-23T05:03:28Z",
       "actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -48,7 +48,7 @@
       "referenced_workflows": [
 
       ],
-      "run_started_at": "2026-10-23T05:01:17Z",
+      "run_started_at": "2026-10-23T05:03:25Z",
       "triggering_actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -70,19 +70,19 @@
         "user_view_type": "public",
         "site_admin": false
       },
-      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39903449915/jobs",
-      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39903449915/logs",
-      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108153653448",
-      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39903449915/artifacts",
-      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39903449915/cancel",
-      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39903449915/rerun",
+      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39903645630/jobs",
+      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39903645630/logs",
+      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108154188457",
+      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39903645630/artifacts",
+      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39903645630/cancel",
+      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39903645630/rerun",
       "previous_attempt_url": null,
       "workflow_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/workflows/393613938",
       "head_commit": {
-        "id": "bd58d1f7bd1532c69ea50baca5c39fb6fb917e7b",
-        "tree_id": "115117511033e7f656d0bdda12b2ee6527bcb034",
-        "message": "v0.3.0: mutate-on-arrival, alternating click strategies",
-        "timestamp": "2026-10-23T05:01:14Z",
+        "id": "237b6a2334cc76c7b0e5808832971550d09199a5",
+        "tree_id": "58c3e04f72e32d01bd306185153aa7b5efc1b873",
+        "message": "fix: int format",
+        "timestamp": "2026-10-23T05:03:21Z",
         "author": {
           "name": "wxrelay",
           "email": "bot@wxrelay"
