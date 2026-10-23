@@ -110,35 +110,32 @@ static void runOwnBulletinTest(BOOL lockScreen);
 static id gBBServer = nil;
 static id gDestinations = nil;
 
+static unsigned long long gDestMask = 0;
+static id gBBServer = nil;
+
 %hook BBServer
--(void)publishBulletin:(id)bulletin destinations:(id)destinations {
-    PLog(@">>> publishBulletin: %@ destinations=%@", [bulletin performSelector:@selector(description)], destinations);
-    if (!gBBServer) { gBBServer = (id)self; gDestinations = destinations;
-        PLog(@"BBServer captured: %@", (id)self);
+-(void)publishBulletinRequest:(id)bulletin destinations:(unsigned long long)destinations {
+    PLog(@">>> publishBulletinRequest: %@ destinations=%llu", [bulletin performSelector:@selector(description)], destinations);
+    if (!gBBServer && destinations != 0) {
+        gBBServer = (id)self;
+        gDestMask = destinations;
+        PLog(@"BBServer captured, mask=0x%llx", destinations);
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20*NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            runOwnBulletinTest(NO);
-        });
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(45*NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            runOwnBulletinTest(YES);
+            runOwnBulletinTest();
         });
     }
     %orig;
 }
--(void)publishBulletin:(id)bulletin destinations:(id)destinations alwaysToLockScreen:(BOOL)lock {
-    PLog(@">>> publishBulletin(locked=%d): %@ destinations=%@", lock, [bulletin performSelector:@selector(description)], destinations);
-    %orig;
-}
 %end
 
-static void runOwnBulletinTest(BOOL lockScreen) {
+static void runOwnBulletinTest(void) {
     if (!gBBServer) { PLog(@"no BBServer captured"); return; }
     @try {
-        Class bbCls = objc_getClass("BBBulletin");
-        id b = [[bbCls alloc] init];
+        id b = [[objc_getClass("BBBulletin") alloc] init];
         setKVC(b, @"sectionID", @"com.tencent.xin");
         setKVC(b, @"title", @"WXPROBE-BB 点击测试");
-        setKVC(b, @"subtitle", @"FakeNotify 路线");
-        setKVC(b, @"message", lockScreen ? @"锁屏变体：点我跳微信" : @"普通变体：点我跳微信");
+        setKVC(b, @"subtitle", @"BBBulletin 路线");
+        setKVC(b, @"message", @"点我验证跳转微信");
         setKVC(b, @"showsMessagePreview", @YES);
         NSDate *now = [NSDate date];
         setKVC(b, @"publicationDate", now);
@@ -154,16 +151,12 @@ static void runOwnBulletinTest(BOOL lockScreen) {
             action = [actCls performSelector:@selector(actionWithLaunchBundleID:callblock:) withObject:@"com.tencent.xin" withObject:nil];
         PLog(@"BBAction created: %@", action);
         if (action) setKVC(b, @"defaultAction", action);
-        PLog(@"own bulletin built: %@", [b performSelector:@selector(description)]);
-        if (lockScreen) {
-            SEL sel = @selector(publishBulletin:destinations:alwaysToLockScreen:);
-            IMP imp = [(id)gBBServer methodForSelector:sel];
-            void (*fn)(id, SEL, id, id, BOOL) = (void (*)(id, SEL, id, id, BOOL))imp;
-            fn(gBBServer, sel, b, gDestinations, YES);
-        }
-        else
-            [(id)gBBServer performSelector:@selector(publishBulletin:destinations:) withObject:b withObject:gDestinations];
-        PLog(@"#### own bulletin posted (lockScreen=%d)", lockScreen);
+        PLog(@"own bulletin: %@", [b performSelector:@selector(description)]);
+        SEL sel = @selector(publishBulletinRequest:destinations:);
+        IMP imp = [gBBServer methodForSelector:sel];
+        void (*fn)(id, SEL, id, unsigned long long) = (void (*)(id, SEL, id, unsigned long long))imp;
+        fn(gBBServer, sel, b, gDestMask);
+        PLog(@"#### own bulletin posted with mask 0x%llx", gDestMask);
     } @catch (NSException *e) { PLog(@"#### own bulletin EX: %@", e); }
 }
 
