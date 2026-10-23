@@ -32,13 +32,6 @@ static void setKVC(id obj, NSString *key, id val) {
     @catch (NSException *e) { PLog(@"KVC SET %@ FAIL: %@", key, e.reason); }
 }
 
-static void dumpContent(id req) {
-    @try {
-        id content = [req valueForKey:@"content"];
-        PLog(@"content.title=%@ | content.message=%@", [content valueForKey:@"title"], [content valueForKey:@"message"]);
-        PLog(@"sectionIdentifier=%@ | notificationIdentifier=%@", [req valueForKey:@"sectionIdentifier"], [req valueForKey:@"notificationIdentifier"]);
-    } @catch (NSException *e) { PLog(@"dumpContent err: %@", e); }
-}
 
 %hook SBNotificationBannerDestination
 -(void)postNotificationRequest:(id)arg1 {
