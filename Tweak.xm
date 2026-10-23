@@ -65,19 +65,7 @@ static void setKVC(id obj, NSString *key, id val) {
 }
 %end
 
-static id gDestinations_obj(void);
-static id gDestObj = nil;
-static void runOwnBulletinTest(void);
-
-static unsigned long long gDestMask = 0;
-static id gBBServer = nil;
-static dispatch_queue_t gBBQueue = nil;
-static id gSound = nil;
-
-%hook BBServer
--(void)publishBulletinRequest:(id)bulletin destinations:(unsigned long long)destinations {
-    PLog(@">>> publishBulletinRequest: %@ destinations=%llu", [bulletin performSelector:@selector(description)], destinations);
-    @try { id s = [bulletin valueForKey:@"sound"]; if (s && !gSound) { gSound = s; PLog(@"sound captured: %@", s); } } @catch (NSException *e) {}
+ } @catch (NSException *e) {}
     if (!gBBServer && destinations != 0) {
         gBBServer = (id)self;
         gDestMask = destinations;
