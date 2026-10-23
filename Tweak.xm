@@ -51,12 +51,6 @@ static void WXSelfAssertion(void) {
     }
 }
 
-%hook SpringBoard
-- (void)applicationDidFinishLaunching:(id)arg1 {
-    %orig;
-}
-%end
-
 %ctor {
     @autoreleasepool {
         PLog(@"========== WXRelayProbe 2.1.0 loaded (WeChat self-assertion), pid=%d", getpid());
