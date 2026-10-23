@@ -34,40 +34,35 @@ static void PLog(NSString *fmt, ...) {
 static id gAssertion = nil;
 static int gWeChatPID = 0;
 
-static void WXDumpClassMethods(const char *name) {
-    Class cls = objc_getClass(name);
-    if (!cls) { PLog(@"%@ MISSING", @(name)); return; }
-    unsigned int mc = 0;
-    Method *ms = class_copyMethodList(cls, &mc);
-    NSMutableString *names = [NSMutableString string];
-    for (unsigned int i = 0; i < mc; i++) [names appendFormat:@"%@; ", NSStringFromSelector(method_getName(ms[i]))];
-    PLog(@"%@ instance(%u): %@", @(name), mc, names);
-    free(ms);
-    mc = 0;
-    ms = class_copyMethodList(object_getClass(cls), &mc);
-    names = [NSMutableString string];
-    for (unsigned int i = 0; i < mc; i++) [names appendFormat:@"%@; ", NSStringFromSelector(method_getName(ms[i]))];
-    PLog(@"%@ class(%u): %@", @(name), mc, names);
-    free(ms);
-}
+
 
 static void WXAcquireAssertionForPID(int pid) {
-    PLog(@">>> trying assertion for pid=%d", pid);
-    // 候选签名逐一试探
+    PLog(@">>> acquiring assertion pid=%d", pid);
     Class bks = objc_getClass("BKSProcessAssertion");
-    if (bks) {
-        SEL s1 = @selector(initWithApplicationName:reason:flags:targetProcess:);
-        SEL s2 = @selector(initWithPID:flags:reason:error:);
-        SEL s3 = @selector(initWithProcess:flags:reason:error:);
-        PLog(@"BKS resp appName=%d pidFlagsReasonErr=%d process=%d",
-             [bks instancesRespondToSelector:s1],
-             [bks instancesRespondToSelector:s2],
-             [bks instancesRespondToSelector:s3]);
+    if (!bks) { PLog(@"BKS MISSING"); return; }
+    SEL sel = @selector(initWithPID:flags:reason:name:);
+    IMP imp = [bks instanceMethodForSelector:sel];
+    unsigned long long flagCandidates[3] = {1, 2, 3};
+    for (int i = 0; i < 3; i++) {
+        @try {
+            id alloc = [bks alloc];
+            id (*fn)(id, SEL, int, unsigned long long, unsigned long long, NSString *) = (id (*)(id, SEL, int, unsigned long long, unsigned long long, NSString *))imp;
+            id assertion = fn(alloc, sel, pid, flagCandidates[i], 0, @"WXRelay");
+            PLog(@"attempt flags=0x%llx -> assertion=%@", flagCandidates[i], assertion);
+            if (assertion) {
+                if ([assertion respondsToSelector:@selector(acquire)]) {
+                    [(id)assertion performSelector:@selector(acquire)];
+                    PLog(@"acquire called (flags=0x%llx)", flagCandidates[i]);
+                }
+                gAssertion = assertion;
+                PLog(@"#### ASSERTION HELD (flags=0x%llx) — 锁屏验微信存活", flagCandidates[i]);
+                return;
+            }
+        } @catch (NSException *e) {
+            PLog(@"attempt flags=0x%llx EXC: %@", flagCandidates[i], e);
+        }
     }
-    WXDumpClassMethods("BKSProcessAssertion");
-    WXDumpClassMethods("RBSProcessAssertion");
-    WXDumpClassMethods("RBSProcessAssertionDescriptor");
-    WXDumpClassMethods("BKSProcessAssertionDescriptor");
+    PLog(@"#### all flag candidates failed");
 }
 
 
