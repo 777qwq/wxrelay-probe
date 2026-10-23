@@ -34,38 +34,42 @@ static void PLog(NSString *fmt, ...) {
 static id gAssertion = nil;
 static int gWeChatPID = 0;
 
-static void WXAcquireAssertionForPID(int pid) {
-    if (gAssertion) return;
-    @try {
-        // BKSProcessAssertion init signature (iOS 13-16):
-        // -initWithPID:flags:reason:error:
-        Class bks = objc_getClass("BKSProcessAssertion");
-        if (!bks) { PLog(@"BKSProcessAssertion MISSING"); return; }
-        id alloc = [bks alloc];
-        SEL sel = @selector(initWithPID:flags:reason:error:);
-        if (![alloc respondsToSelector:sel]) {
-            PLog(@"BKS init selector not responded");
-            return;
-        }
-        // flags: BKSProcessAssertionFlagsPreventTaskSuspend = 1 << 0? use known combo 0x1 | 0x10 (prevent suspend + allow lock screen)
-        unsigned long long flags = 0x1 | 0x10;
-        // reason: BKSProcessAssertionReasonOther = 0? use 2 (backgroundContentFetching)? pass 0 first
-        NSError *error = nil;
-        id assertion = nil;
-        IMP imp = [alloc methodForSelector:sel];
-        id (*fn)(id, SEL, int, unsigned long long, unsigned long long, id *) = (id (*)(id, SEL, int, unsigned long long, unsigned long long, id *))imp;
-        assertion = fn(alloc, sel, pid, flags, 0, &error);
-        if (assertion) {
-            gAssertion = assertion;
-            PLog(@"BKSProcessAssertion ACQUIRED for pid=%d flags=0x%llx assertion=%@", pid, flags, assertion);
-            @try { PLog(@"assertion state: %@", [assertion valueForKey:@"_assertionState"]); } @catch (NSException *e) { }
-        } else {
-            PLog(@"BKSProcessAssertion FAILED pid=%d error=%@", pid, error);
-        }
-    } @catch (NSException *e) {
-        PLog(@"assertion EXC: %@", e);
-    }
+static void WXDumpClassMethods(const char *name) {
+    Class cls = objc_getClass(name);
+    if (!cls) { PLog(@"%@ MISSING", @(name)); return; }
+    unsigned int mc = 0;
+    Method *ms = class_copyMethodList(cls, &mc);
+    NSMutableString *names = [NSMutableString string];
+    for (unsigned int i = 0; i < mc; i++) [names appendFormat:@"%@; ", NSStringFromSelector(method_getName(ms[i]))];
+    PLog(@"%@ instance(%u): %@", @(name), mc, names);
+    free(ms);
+    mc = 0;
+    ms = class_copyMethodList(object_getClass(cls), &mc);
+    names = [NSMutableString string];
+    for (unsigned int i = 0; i < mc; i++) [names appendFormat:@"%@; ", NSStringFromSelector(method_getName(ms[i]))];
+    PLog(@"%@ class(%u): %@", @(name), mc, names);
+    free(ms);
 }
+
+static void WXAcquireAssertionForPID(int pid) {
+    PLog(@">>> trying assertion for pid=%d", pid);
+    // 候选签名逐一试探
+    Class bks = objc_getClass("BKSProcessAssertion");
+    if (bks) {
+        SEL s1 = @selector(initWithApplicationName:reason:flags:targetProcess:);
+        SEL s2 = @selector(initWithPID:flags:reason:error:);
+        SEL s3 = @selector(initWithProcess:flags:reason:error:);
+        PLog(@"BKS resp appName=%d pidFlagsReasonErr=%d process=%d",
+             [bks instancesRespondToSelector:s1],
+             [bks instancesRespondToSelector:s2],
+             [bks instancesRespondToSelector:s3]);
+    }
+    WXDumpClassMethods("BKSProcessAssertion");
+    WXDumpClassMethods("RBSProcessAssertion");
+    WXDumpClassMethods("RBSProcessAssertionDescriptor");
+    WXDumpClassMethods("BKSProcessAssertionDescriptor");
+}
+
 
 static void WXFindWeChatPID(void) {
     @try {
