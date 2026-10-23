@@ -75,7 +75,7 @@ static void WXFindWeChatPID(void) {
         int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0};
         size_t size = 0;
         if (sysctl(mib, 4, NULL, &size, NULL, 0) == 0) {
-            struct kinfo_proc *procs = malloc(size);
+            struct kinfo_proc *procs = (struct kinfo_proc *)malloc(size);
             if (procs && sysctl(mib, 4, procs, &size, NULL, 0) == 0) {
                 int count = (int)(size / sizeof(struct kinfo_proc));
                 char path[PROC_PIDPATHINFO_MAXSIZE];
