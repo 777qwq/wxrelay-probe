@@ -48,9 +48,22 @@ static void dumpPayload(id arg1) {
 }
 %end
 
+%hook BBServer
+-(void)publishBulletinRequest:(id)bulletin destinations:(unsigned long long)destinations {
+    @try {
+        NSString *sec = nil;
+        @try { sec = [bulletin valueForKey:@"sectionIdentifier"]; } @catch (NSException *e) {}
+        NSString *first = [sec isKindOfClass:[NSString class]] ? sec : [bulletin performSelector:@selector(description)];
+        if ([first length] > 120) first = [first substringToIndex:120];
+        PLog(@">>> BBServer publish: section=%@ destinations=%llu", first, destinations);
+    } @catch (NSException *e) { PLog(@">>> BBServer publish dump EX: %@", e); }
+    %orig;
+}
+%end
+
 %ctor {
     @autoreleasepool {
-        PLog(@"========== WXRelayProbe 1.0.0 loaded, pid=%d", getpid());
+        PLog(@"========== WXRelayProbe 1.1.0 loaded, pid=%d", getpid());
         PLog(@"SBUserNotificationCenter -> %@", objc_getClass("SBUserNotificationCenter") ? @"EXISTS" : @"MISSING");
     }
 }
