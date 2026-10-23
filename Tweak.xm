@@ -1,12 +1,9 @@
-// WXRelayProbe 1.3.0 - is Immortalizer's UNS hook point alive on iOS 16.3?
-// 1. dump UNSUserNotificationServer method list
-// 2. hook willPresentNotification:forBundleIdentifier:withCompletionHandler: (log fire + args)
-// 3. hook _didChangeApplicationState:forBundleIdentifier: (log calls + values)
-// Log: /var/mobile/Library/Logs/WXRelayProbe.log
+// WXRelayProbe 1.4.0 - WeChat-process: find UNUserNotificationCenter delegate, hook its willPresent
 #import <fcntl.h>
 #import <unistd.h>
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <UserNotifications/UserNotifications.h>
 #import <objc/runtime.h>
 
 static NSString *kLogPath = @"/var/mobile/Library/Logs/WXRelayProbe.log";
@@ -26,35 +23,58 @@ static void PLog(NSString *fmt, ...) {
     if (fd >= 0) { write(fd, d.bytes, d.length); close(fd); }
 }
 
-%hook UNSUserNotificationServer
--(void)willPresentNotification:(id)arg1 forBundleIdentifier:(id)arg2 withCompletionHandler:(id)arg3 {
-    PLog(@">>> UNS willPresentNotification fired! bundle=%@ notif=%@", arg2, [arg1 performSelector:@selector(description)]);
-    %orig;
-}
--(void)_didChangeApplicationState:(unsigned long long)arg1 forBundleIdentifier:(id)arg2 {
-    PLog(@">>> UNS _didChangeApplicationState called: state=%llu bundle=%@", arg1, arg2);
-    %orig;
-}
-%end
+static IMP gOrigWillPresent = NULL;
+static Class gDelegateClass = nil;
 
-%ctor {
-    @autoreleasepool {
-        PLog(@"========== WXRelayProbe 1.3.0 loaded, pid=%d", getpid());
-        Class uns = objc_getClass("UNSUserNotificationServer");
-        PLog(@"UNSUserNotificationServer -> %@", uns ? @"EXISTS" : @"MISSING");
-        if (uns) {
-            unsigned int mc = 0;
-            Method *ms = class_copyMethodList(uns, &mc);
-            NSMutableString *names = [NSMutableString string];
-            for (unsigned int i = 0; i < mc; i++) [names appendFormat:@"%@; ", NSStringFromSelector(method_getName(ms[i]))];
-            PLog(@"UNS instance methods(%u): %@", mc, names);
-            free(ms);
-            mc = 0;
-            ms = class_copyMethodList(object_getClass(uns), &mc);
-            names = [NSMutableString string];
-            for (unsigned int i = 0; i < mc; i++) [names appendFormat:@"%@; ", NSStringFromSelector(method_getName(ms[i]))];
-            PLog(@"UNS class methods(%u): %@", mc, names);
-            free(ms);
+static void wxHookedWillPresent(id self, SEL _cmd, UNUserNotificationCenter *center, UNNotification *notification, void (^completionHandler)(UNNotificationPresentationOptions));
+
+static void WXDUMPDelegate(void) {
+    @try {
+        UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+        id delegate = [center delegate];
+        PLog(@"UNUserNotificationCenter center=%@ delegate=%@ class=%@", center, delegate, NSStringFromClass([delegate class]));
+        if (![delegate isKindOfClass:[NSObject class]] || !delegate) return;
+        gDelegateClass = [delegate class];
+        unsigned int mc = 0;
+        Method *ms = class_copyMethodList(gDelegateClass, &mc);
+        NSMutableString *names = [NSMutableString string];
+        for (unsigned int i = 0; i < mc; i++) [names appendFormat:@"%@; ", NSStringFromSelector(method_getName(ms[i]))];
+        PLog(@"delegate methods(%u): %@", mc, names);
+        free(ms);
+        // hook willPresentNotification:withCompletionHandler:
+        SEL sel = @selector(userNotificationCenter:willPresentNotification:withCompletionHandler:);
+        Method m = class_getInstanceMethod(gDelegateClass, sel);
+        if (m) {
+            gOrigWillPresent = method_getImplementation(m);
+            method_setImplementation(m, (IMP)wxHookedWillPresent);
+            PLog(@"delegate willPresent HOOKED on %@", NSStringFromClass(gDelegateClass));
+        } else {
+            PLog(@"delegate does NOT implement willPresent (system default = silent!)");
         }
+    } @catch (NSException *e) {
+        PLog(@"dump EXC: %@", e);
+    }
+}
+
+static void wxHookedWillPresent(id self, SEL _cmd, UNUserNotificationCenter *center, UNNotification *notification, void (^completionHandler)(UNNotificationPresentationOptions)) {
+    PLog(@">>> APP-side willPresent fired! request=%@ title=%@ body=%@",
+         notification.request.identifier,
+         notification.request.content.title,
+         notification.request.content.body);
+    if (gOrigWillPresent) ((void(*)(id,SEL,id,id,id))gOrigWillPresent)(self, _cmd, center, notification, completionHandler);
+    else if (completionHandler) completionHandler(UNNotificationPresentationOptionBanner | UNNotificationPresentationOptionSound);
+    PLog(@">>> APP-side willPresent done (orig called=%d)", gOrigWillPresent != NULL);
+}
+
+__attribute__((constructor)) static void wxprobeCtor(void) {
+    @autoreleasepool {
+        PLog(@"========== WXRelayProbe 1.4.0 loaded (WeChat process), pid=%d", getpid());
+        // scene/session ready delay
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            WXDUMPDelegate();
+        });
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            if (!gOrigWillPresent) { PLog(@"retry dump (delegate was nil)"); WXDUMPDelegate(); }
+        });
     }
 }
