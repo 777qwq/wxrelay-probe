@@ -77,7 +77,10 @@ static dispatch_queue_t gBBQueue = nil;
     if (!gBBServer && destinations != 0) {
         gBBServer = (id)self;
         gDestMask = destinations;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         gBBQueue = dispatch_get_current_queue();
+#pragma clang diagnostic pop
         PLog(@"BBServer captured, mask=0x%llx queue=%@", destinations, gBBQueue);
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20*NSEC_PER_SEC)), gBBQueue, ^{
             runOwnBulletinTest();
