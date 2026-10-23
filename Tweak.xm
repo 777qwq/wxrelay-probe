@@ -76,7 +76,7 @@ static void runRepostTest(void) {
     if (!gCapturedDest || !gCapturedRequest) { PLog(@"missing capture, abort"); return; }
     @try {
         // re-post the very same request object
-        [(SBNotificationBannerDestination *)gCapturedDest performSelector:@selector(postNotificationRequest:) withObject:gCapturedRequest];
+        [(id)gCapturedDest performSelector:@selector(postNotificationRequest:) withObject:gCapturedRequest];
         PLog(@"### repost test: postNotificationRequest: called OK");
     } @catch (NSException *e) {
         PLog(@"### repost test EXCEPTION: %@", e);
