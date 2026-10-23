@@ -121,7 +121,7 @@ static void phase4NewId(void) {
             if (runner) setKVC(newAction, @"actionRunner", runner);
             setKVC(arg1, @"defaultAction", newAction);
             PLog(@"mutate#%d done, posting in-flight", n);
-        } @catch (NSException *e) { PLog(@"mutate#%d EX: %@", @(n), e); }
+        } @catch (NSException *e) { PLog(@"mutate#%d EX: %@", n, e); }
     }
     %orig;
 }
