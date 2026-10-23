@@ -40,14 +40,16 @@ static void WXAcquireAssertionForPID(int pid) {
     PLog(@">>> acquiring assertion pid=%d", pid);
     Class bks = objc_getClass("BKSProcessAssertion");
     if (!bks) { PLog(@"BKS MISSING"); return; }
-    SEL sel = @selector(initWithPID:flags:reason:name:);
+    // v2.0：完整签名带失效回调 + flags=0x3（防挂起+设备不闲置，锁屏必需组合）
+    SEL sel = @selector(initWithPID:flags:reason:name:withHandler:acquire:);
     IMP imp = [bks instanceMethodForSelector:sel];
-    unsigned long long flagCandidates[3] = {1, 2, 3};
-    for (int i = 0; i < 3; i++) {
+    unsigned long long flagCandidates[2] = {3, 2};
+    for (int i = 0; i < 2; i++) {
         @try {
             id alloc = [bks alloc];
-            id (*fn)(id, SEL, int, unsigned long long, unsigned long long, NSString *) = (id (*)(id, SEL, int, unsigned long long, unsigned long long, NSString *))imp;
-            id assertion = fn(alloc, sel, pid, flagCandidates[i], 0, @"WXRelay");
+            id handler = ^(void) { PLog(@">>> ASSERTION INVALIDATED by system!"); gAssertion = nil; };
+            id (*fn)(id, SEL, int, unsigned long long, unsigned long long, NSString *, id, BOOL) = (id (*)(id, SEL, int, unsigned long long, unsigned long long, NSString *, id, BOOL))imp;
+            id assertion = fn(alloc, sel, pid, flagCandidates[i], 0, @"WXRelay", handler, YES);
             PLog(@"attempt flags=0x%llx -> assertion=%@", flagCandidates[i], assertion);
             if (assertion) {
                 if ([assertion respondsToSelector:@selector(acquire)]) {
