@@ -1,4 +1,8 @@
-// WXRelayProbe 1.2.0 - identify app from UIMutableApplicationSceneSettings in deactivation flow
+// WXRelayProbe 1.3.0 - is Immortalizer's UNS hook point alive on iOS 16.3?
+// 1. dump UNSUserNotificationServer method list
+// 2. hook willPresentNotification:forBundleIdentifier:withCompletionHandler: (log fire + args)
+// 3. hook _didChangeApplicationState:forBundleIdentifier: (log calls + values)
+// Log: /var/mobile/Library/Logs/WXRelayProbe.log
 #import <fcntl.h>
 #import <unistd.h>
 #import <Foundation/Foundation.h>
@@ -22,52 +26,35 @@ static void PLog(NSString *fmt, ...) {
     if (fd >= 0) { write(fd, d.bytes, d.length); close(fd); }
 }
 
-static int gDumps = 0;
-
-%hook UIMutableApplicationSceneSettings
--(void)setDeactivationReasons:(unsigned long long)arg1 {
-    if (gDumps < 6) {
-        gDumps++;
-        PLog(@"=== setDeactivationReasons #%d value=%llu ===", gDumps, arg1);
-        PLog(@"class=%@", NSStringFromClass([(id)self class]));
-        // candidate identity selectors
-        NSDictionary *cands = @{@"representedApplicationBundleIdentifier": @"representedApplicationBundleIdentifier",
-                                @"applicationBundleIdentifier": @"applicationBundleIdentifier",
-                                @"bundleIdentifier": @"bundleIdentifier",
-                                @"applicationIdentifier": @"applicationIdentifier",
-                                @"sceneID": @"sceneID",
-                                @"sceneIdentifier": @"sceneIdentifier"};
-        [cands enumerateKeysAndObjectsUsingBlock:^(id k, id sel, BOOL *stop) {
-            @try {
-                SEL s2 = NSSelectorFromString(sel);
-                if ([(id)self respondsToSelector:s2]) {
-                    IMP imp = [(id)self methodForSelector:s2];
-                    id v = ((id (*)(id, SEL))imp)((id)self, s2);
-                    PLog(@"  %@ = %@", k, v);
-                }
-            } @catch (NSException *e) { }
-        }];
-        // full property dump (first two only, keep log small)
-        if (gDumps <= 2) {
-            unsigned int pc = 0;
-            objc_property_t *props = class_copyPropertyList([(id)self class], &pc);
-            PLog(@"  properties (%u):", pc);
-            for (unsigned int i = 0; i < pc; i++) {
-                NSString *key = @(property_getName(props[i]));
-                @try { PLog(@"    %@ = %@", key, [(id)self valueForKey:key]); }
-                @catch (NSException *e) { PLog(@"    %@ = <err>", key); }
-            }
-            if (props) free(props);
-            PLog(@"  description: %@", [(id)self debugDescription]);
-        }
-    }
+%hook UNSUserNotificationServer
+-(void)willPresentNotification:(id)arg1 forBundleIdentifier:(id)arg2 withCompletionHandler:(id)arg3 {
+    PLog(@">>> UNS willPresentNotification fired! bundle=%@ notif=%@", arg2, [arg1 performSelector:@selector(description)]);
+    %orig;
+}
+-(void)_didChangeApplicationState:(unsigned long long)arg1 forBundleIdentifier:(id)arg2 {
+    PLog(@">>> UNS _didChangeApplicationState called: state=%llu bundle=%@", arg1, arg2);
     %orig;
 }
 %end
 
 %ctor {
     @autoreleasepool {
-        PLog(@"========== WXRelayProbe 1.2.0 loaded, pid=%d", getpid());
-        PLog(@"UIMutableApplicationSceneSettings -> %@", objc_getClass("UIMutableApplicationSceneSettings") ? @"EXISTS" : @"MISSING");
+        PLog(@"========== WXRelayProbe 1.3.0 loaded, pid=%d", getpid());
+        Class uns = objc_getClass("UNSUserNotificationServer");
+        PLog(@"UNSUserNotificationServer -> %@", uns ? @"EXISTS" : @"MISSING");
+        if (uns) {
+            unsigned int mc = 0;
+            Method *ms = class_copyMethodList(uns, &mc);
+            NSMutableString *names = [NSMutableString string];
+            for (unsigned int i = 0; i < mc; i++) [names appendFormat:@"%@; ", NSStringFromSelector(method_getName(ms[i]))];
+            PLog(@"UNS instance methods(%u): %@", mc, names);
+            free(ms);
+            mc = 0;
+            ms = class_copyMethodList(object_getClass(uns), &mc);
+            names = [NSMutableString string];
+            for (unsigned int i = 0; i < mc; i++) [names appendFormat:@"%@; ", NSStringFromSelector(method_getName(ms[i]))];
+            PLog(@"UNS class methods(%u): %@", mc, names);
+            free(ms);
+        }
     }
 }
