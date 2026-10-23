@@ -1,28 +1,28 @@
 {
-  "total_count": 4,
+  "total_count": 5,
   "workflow_runs": [
     {
-      "id": 39900653151,
+      "id": 39901513211,
       "name": "Build WXRelayProbe",
-      "node_id": "WFR_kwLOVURL2M8AAAAJSkOmXw",
+      "node_id": "WFR_kwLOVURL2M8AAAAJSlDF-w",
       "head_branch": "main",
-      "head_sha": "5f7a3a9cd2cd10fb579f852c7761ba3db1648b27",
+      "head_sha": "020aa907db62de0a94879a2738e1d1795762edba",
       "path": ".github/workflows/build.yml",
-      "display_title": "fix: id-cast self in dispatcher hook",
-      "run_number": 4,
+      "display_title": "fix: remove unused gPhase",
+      "run_number": 5,
       "event": "push",
       "status": "in_progress",
       "conclusion": null,
       "workflow_id": 393613938,
-      "check_suite_id": 108146176311,
-      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZLgOxNw",
-      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39900653151",
-      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39900653151",
+      "check_suite_id": 108148505046,
+      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZLic51g",
+      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39901513211",
+      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39901513211",
       "pull_requests": [
 
       ],
-      "created_at": "2026-10-23T04:30:09Z",
-      "updated_at": "2026-10-23T04:30:12Z",
+      "created_at": "2026-10-23T04:39:51Z",
+      "updated_at": "2026-10-23T04:39:55Z",
       "actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -48,7 +48,7 @@
       "referenced_workflows": [
 
       ],
-      "run_started_at": "2026-10-23T04:30:09Z",
+      "run_started_at": "2026-10-23T04:39:51Z",
       "triggering_actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -70,19 +70,19 @@
         "user_view_type": "public",
         "site_admin": false
       },
-      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39900653151/jobs",
-      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39900653151/logs",
-      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108146176311",
-      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39900653151/artifacts",
-      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39900653151/cancel",
-      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39900653151/rerun",
+      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39901513211/jobs",
+      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39901513211/logs",
+      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108148505046",
+      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39901513211/artifacts",
+      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39901513211/cancel",
+      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39901513211/rerun",
       "previous_attempt_url": null,
       "workflow_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/workflows/393613938",
       "head_commit": {
-        "id": "5f7a3a9cd2cd10fb579f852c7761ba3db1648b27",
-        "tree_id": "1c703eceda19b35d1a5fd5b483881ee840465c1a",
-        "message": "fix: id-cast self in dispatcher hook",
-        "timestamp": "2026-10-23T04:30:05Z",
+        "id": "020aa907db62de0a94879a2738e1d1795762edba",
+        "tree_id": "a4b037f736eb554747e3c088d08919be40164c0b",
+        "message": "fix: remove unused gPhase",
+        "timestamp": "2026-10-23T04:39:48Z",
         "author": {
           "name": "wxrelay",
           "email": "bot@wxrelay"

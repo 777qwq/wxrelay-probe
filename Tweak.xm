@@ -90,13 +90,38 @@ static void phase4NewId(void) {
 %hook SBNotificationBannerDestination
 -(void)postNotificationRequest:(id)arg1 {
     PLog(@"=== postNotificationRequest: %@", [arg1 performSelector:@selector(description)]);
-    if (!gReq) {
-        gReq = arg1; gDest = self;
-        PLog(@"captured first request, scheduling 4 phases (20s apart)");
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20*NSEC_PER_SEC)), dispatch_get_main_queue(), ^{ phase1Repost(); });
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(40*NSEC_PER_SEC)), dispatch_get_main_queue(), ^{ phase2TextSwap(); });
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(60*NSEC_PER_SEC)), dispatch_get_main_queue(), ^{ phase3SectionSwap(); });
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(80*NSEC_PER_SEC)), dispatch_get_main_queue(), ^{ phase4NewId(); });
+    if (!gDest) gDest = self;
+    static int gCount = 0;
+    int n = ++gCount;
+    NSString *sec = nil;
+    @try { sec = [arg1 valueForKey:@"sectionIdentifier"]; } @catch (id e) {}
+    // only mutate fresh SMS requests (stable template source), alternating strategy
+    if ([sec isEqualToString:@"com.apple.MobileSMS"] && n <= 4) {
+        @try {
+            setKVC(arg1, @"sectionIdentifier", @"com.tencent.xin");
+            setKVC(arg1, @"notificationIdentifier", [[NSUUID UUID] UUIDString]);
+            id content = [arg1 valueForKey:@"content"];
+            setKVC(content, @"title", [NSString stringWithFormat:@"WXPROBE-%d 点击测试", n]);
+            setKVC(content, @"message", [NSString stringWithFormat:@"策略%d：点击我验证跳转", n]);
+            id oldAction = [arg1 valueForKey:@"defaultAction"];
+            id newAction = [[objc_getClass("NCNotificationAction") alloc] init];
+            setKVC(newAction, @"identifier", @"com.apple.UNNotificationDefaultActionIdentifier");
+            if (n % 2 == 1) {           // odd: URL scheme
+                setKVC(newAction, @"launchURL", @"weixin://");
+                PLog(@"mutate#%d strategy=launchURL weixin://", n);
+            } else {                     // even: bundle id
+                setKVC(newAction, @"launchBundleID", @"com.tencent.xin");
+                PLog(@"mutate#%d strategy=launchBundleID", n);
+            }
+            setKVC(newAction, @"activationMode", @1);
+            setKVC(newAction, @"shouldDismiss", @YES);
+            setKVC(newAction, @"requiresUnlock", @NO);
+            id runner = nil;
+            @try { runner = [oldAction valueForKey:@"actionRunner"]; } @catch (id e) {}
+            if (runner) setKVC(newAction, @"actionRunner", runner);
+            setKVC(arg1, @"defaultAction", newAction);
+            PLog(@"mutate#%d done, posting in-flight", n);
+        } @catch (NSException *e) { PLog(@"mutate#%d EX: %@", @(n), e); }
     }
     %orig;
 }
