@@ -1,28 +1,28 @@
 {
-  "total_count": 30,
+  "total_count": 31,
   "workflow_runs": [
     {
-      "id": 39975692862,
+      "id": 39980143572,
       "name": "Build WXRelayProbe",
-      "node_id": "WFR_kwLOVURL2M8AAAAJTryqPg",
+      "node_id": "WFR_kwLOVURL2M8AAAAJTwCT1A",
       "head_branch": "main",
-      "head_sha": "debb9e12087c7ff6be236f7952c64a103e9f3843",
+      "head_sha": "df05b31943f9bde26323216cb4c5fde7e5398f8b",
       "path": ".github/workflows/build.yml",
-      "display_title": "v1.3.0: UNS liveness probe (method dump + willPresent/_didChangeAppli…",
-      "run_number": 30,
+      "display_title": "v1.4.0: WeChat-process UNUserNotificationCenter delegate probe + dyna…",
+      "run_number": 31,
       "event": "push",
       "status": "in_progress",
       "conclusion": null,
       "workflow_id": 393613938,
-      "check_suite_id": 108353758808,
-      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZOmMmWA",
-      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39975692862",
-      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39975692862",
+      "check_suite_id": 108366326540,
+      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZOyLrDA",
+      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39980143572",
+      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39980143572",
       "pull_requests": [
 
       ],
-      "created_at": "2026-10-23T15:08:27Z",
-      "updated_at": "2026-10-23T15:08:33Z",
+      "created_at": "2026-10-23T15:39:26Z",
+      "updated_at": "2026-10-23T15:39:31Z",
       "actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -48,7 +48,7 @@
       "referenced_workflows": [
 
       ],
-      "run_started_at": "2026-10-23T15:08:27Z",
+      "run_started_at": "2026-10-23T15:39:26Z",
       "triggering_actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -70,19 +70,19 @@
         "user_view_type": "public",
         "site_admin": false
       },
-      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39975692862/jobs",
-      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39975692862/logs",
-      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108353758808",
-      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39975692862/artifacts",
-      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39975692862/cancel",
-      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39975692862/rerun",
+      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39980143572/jobs",
+      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39980143572/logs",
+      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108366326540",
+      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39980143572/artifacts",
+      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39980143572/cancel",
+      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39980143572/rerun",
       "previous_attempt_url": null,
       "workflow_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/workflows/393613938",
       "head_commit": {
-        "id": "debb9e12087c7ff6be236f7952c64a103e9f3843",
-        "tree_id": "02398e40f95ec6c693e6ae0bf8e8ad9cf5584436",
-        "message": "v1.3.0: UNS liveness probe (method dump + willPresent/_didChangeApplicationState hooks)",
-        "timestamp": "2026-10-23T15:08:23Z",
+        "id": "df05b31943f9bde26323216cb4c5fde7e5398f8b",
+        "tree_id": "813b935456b1d0bbc9e909fe64888e91c53b7737",
+        "message": "v1.4.0: WeChat-process UNUserNotificationCenter delegate probe + dynamic hook",
+        "timestamp": "2026-10-23T15:39:22Z",
         "author": {
           "name": "wxrelay",
           "email": "bot@wxrelay"

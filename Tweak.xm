@@ -1,9 +1,10 @@
-// WXRelayProbe 1.4.0 - WeChat-process: find UNUserNotificationCenter delegate, hook its willPresent
+// WXRelayProbe 1.5.0 - lie to UNS: WeChat is ALWAYS background (state=8)
+// Hypothesis: with keep-alive keeping WeChat alive, forcing UNS state=8 for com.tencent.xin
+// makes usernoted treat pushes as background -> native banner with avatar.
 #import <fcntl.h>
 #import <unistd.h>
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <UserNotifications/UserNotifications.h>
 #import <objc/runtime.h>
 
 static NSString *kLogPath = @"/var/mobile/Library/Logs/WXRelayProbe.log";
@@ -23,58 +24,20 @@ static void PLog(NSString *fmt, ...) {
     if (fd >= 0) { write(fd, d.bytes, d.length); close(fd); }
 }
 
-static IMP gOrigWillPresent = NULL;
-static Class gDelegateClass = nil;
-
-static void wxHookedWillPresent(id self, SEL _cmd, UNUserNotificationCenter *center, UNNotification *notification, void (^completionHandler)(UNNotificationPresentationOptions));
-
-static void WXDUMPDelegate(void) {
-    @try {
-        UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
-        id delegate = [center delegate];
-        PLog(@"UNUserNotificationCenter center=%@ delegate=%@ class=%@", center, delegate, NSStringFromClass([delegate class]));
-        if (![delegate isKindOfClass:[NSObject class]] || !delegate) return;
-        gDelegateClass = [delegate class];
-        unsigned int mc = 0;
-        Method *ms = class_copyMethodList(gDelegateClass, &mc);
-        NSMutableString *names = [NSMutableString string];
-        for (unsigned int i = 0; i < mc; i++) [names appendFormat:@"%@; ", NSStringFromSelector(method_getName(ms[i]))];
-        PLog(@"delegate methods(%u): %@", mc, names);
-        free(ms);
-        // hook willPresentNotification:withCompletionHandler:
-        SEL sel = @selector(userNotificationCenter:willPresentNotification:withCompletionHandler:);
-        Method m = class_getInstanceMethod(gDelegateClass, sel);
-        if (m) {
-            gOrigWillPresent = method_getImplementation(m);
-            method_setImplementation(m, (IMP)wxHookedWillPresent);
-            PLog(@"delegate willPresent HOOKED on %@", NSStringFromClass(gDelegateClass));
-        } else {
-            PLog(@"delegate does NOT implement willPresent (system default = silent!)");
+%hook UNSUserNotificationServer
+-(void)_didChangeApplicationState:(unsigned long long)arg1 forBundleIdentifier:(id)arg2 {
+    if ([arg2 isKindOfClass:[NSString class]] && [(NSString *)arg2 isEqualToString:@"com.tencent.xin"]) {
+        if (arg1 != 8) {
+            PLog(@">>> LIE: WeChat state %llu -> 8", arg1);
+            arg1 = 8;
         }
-    } @catch (NSException *e) {
-        PLog(@"dump EXC: %@", e);
     }
+    %orig;
 }
+%end
 
-static void wxHookedWillPresent(id self, SEL _cmd, UNUserNotificationCenter *center, UNNotification *notification, void (^completionHandler)(UNNotificationPresentationOptions)) {
-    PLog(@">>> APP-side willPresent fired! request=%@ title=%@ body=%@",
-         notification.request.identifier,
-         notification.request.content.title,
-         notification.request.content.body);
-    if (gOrigWillPresent) ((void(*)(id,SEL,id,id,id))gOrigWillPresent)(self, _cmd, center, notification, completionHandler);
-    else if (completionHandler) completionHandler(UNNotificationPresentationOptionBanner | UNNotificationPresentationOptionSound);
-    PLog(@">>> APP-side willPresent done (orig called=%d)", gOrigWillPresent != NULL);
-}
-
-__attribute__((constructor)) static void wxprobeCtor(void) {
+%ctor {
     @autoreleasepool {
-        PLog(@"========== WXRelayProbe 1.4.0 loaded (WeChat process), pid=%d", getpid());
-        // scene/session ready delay
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            WXDUMPDelegate();
-        });
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            if (!gOrigWillPresent) { PLog(@"retry dump (delegate was nil)"); WXDUMPDelegate(); }
-        });
+        PLog(@"========== WXRelayProbe 1.5.0 loaded (state=8 lie), pid=%d", getpid());
     }
 }
