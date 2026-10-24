@@ -84,7 +84,7 @@ static id gDest = nil; // captured SBNotificationBannerDestination
 %end
 
 %hook SBBannerAuthority
-- (long long)shouldPostPresentable:(id)p userInfo:(id)ui reason:(out id*)reason {
+- (long long)shouldPostPresentable:(id)p userInfo:(id)ui reason:(id*)reason {
     long long r = %orig;
     id rr = reason ? *reason : nil;
     PLog(@"[AUTH] shouldPost %@ userInfo=%@ -> ret=%lld reason=%@",
@@ -92,7 +92,7 @@ static id gDest = nil; // captured SBNotificationBannerDestination
     return r;
 }
 - (long long)shouldPresentPresentable:(id)p withPresentedPresentables:(id)others
-            responsiblePresentable:(out id*)resp {
+            responsiblePresentable:(id*)resp {
     long long r = %orig;
     PLog(@"[AUTH] shouldPresent %@ -> ret=%lld", p, r);
     return r;
