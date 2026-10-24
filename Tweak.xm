@@ -1,12 +1,12 @@
-// WXRelayProbe 3.0.2 - SB-side notification pipeline probe (iOS 16.3)
-// Goal: locate where WeChat notification requests die on the 16.3 SB banner path.
-// Layers hooked: SBNCNotificationDispatcher (lockscreen/destinations)
-//                SBBannerAuthority (admission gate)
-//                SBNotificationBannerDestination (banner endpoint + deny reason + test injection)
+// WXRelayProbe 3.2.0 - WeChat-side UNUserNotificationCenter delegate probe
+// Hypothesis (probe-confirmed): alive WeChat is treated as "active" by usernoted;
+// presentation decision falls to WeChat's own UNUserNotificationCenter delegate,
+// whose willPresent returns nothing -> no banner, in-app sound only.
+// This probe OBSERVES ONLY: logs delegate class + willPresent invocations.
 #import <fcntl.h>
 #import <unistd.h>
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
+#import <UserNotifications/UserNotifications.h>
 #import <objc/runtime.h>
 
 static NSString *kLogPath = @"/var/mobile/Library/Logs/WXRelayProbe.log";
@@ -29,138 +29,57 @@ static void PLog(NSString *fmt, ...) {
     }
 }
 
-// Safe summary of an NCNotificationRequest-ish object
-static NSString *ReqSummary(id req) {
-    if (!req) return @"(nil)";
-    NSMutableString *s = [NSMutableString stringWithFormat:@"<%@:%p", NSStringFromClass([req class]), req];
-    for (NSString *k in @[@"uniqueIdentifier", @"bundleIdentifier", @"sectionIdentifier",
-                          @"threadIdentifier", @"title", @"subtitle", @"body"]) {
-        @try {
-            if ([req respondsToSelector:NSSelectorFromString(k)]) {
-                id v = [req valueForKeyPath:k];
-                if ([v isKindOfClass:[NSString class]] && [(NSString *)v length] > 60)
-                    v = [(NSString *)v substringToIndex:60];
-                [s appendFormat:@" %@=%@", k, v];
-            }
-        } @catch (NSException *e) {}
-    }
-    return [s stringByAppendingString:@">"];
-}
+static Class gDelegateClass = nil;
+static IMP gOrigWillPresent = NULL;
+static SEL gWillPresentSel;
 
-static id gDest = nil; // captured SBNotificationBannerDestination
-
-%hook SBNotificationBannerDestination
-- (id)init {
-    id o = %orig;
-    if (!gDest) { gDest = o; PLog(@"[DEST] captured instance %p", o); }
-    return o;
-}
-- (BOOL)canReceiveNotificationRequest:(id)req {
-    BOOL r = %orig;
-    PLog(@"[DEST] canReceive %@ -> %@", ReqSummary(req), r ? @"YES" : @"NO");
-    return r;
-}
-- (void)postNotificationRequest:(id)req {
-    PLog(@"[DEST] postNotificationRequest %@", ReqSummary(req));
+%hook UNUserNotificationCenter
+- (void)setDelegate:(id)dlg {
     %orig;
-}
-- (void)modifyNotificationRequest:(id)req {
-    PLog(@"[DEST] modifyNotificationRequest %@", ReqSummary(req));
-    %orig;
-}
-- (void)withdrawNotificationRequest:(id)req {
-    PLog(@"[DEST] withdraw %@", ReqSummary(req));
-    %orig;
-}
-- (void)presentableWillAppearAsBanner:(id)p {
-    PLog(@"[DEST] >>> banner WILL appear: %@", p);
-    %orig;
-}
-- (void)presentableDidAppearAsBanner:(id)p {
-    PLog(@"[DEST] >>> BANNER SHOWN: %@", p);
-    %orig;
-}
-- (void)presentableWillNotAppearAsBanner:(id)p withReason:(id)r {
-    PLog(@"[DEST] !!! banner DENIED: %@ reason=%@", p, r);
-    %orig;
+    gDelegateClass = object_getClass(dlg);
+    PLog(@"[WC] setDelegate -> %@", NSStringFromClass(gDelegateClass));
+    PLog(@"[WC]   responds willPresent: %d",
+         [dlg respondsToSelector:@selector(userNotificationCenter:willPresentNotification:withCompletionHandler:)]);
+    PLog(@"[WC]   responds didReceive: %d",
+         [dlg respondsToSelector:@selector(userNotificationCenter:didReceiveNotificationResponse:withCompletionHandler:)]);
 }
 %end
 
-%hook SBBannerAuthority
-- (long long)shouldPostPresentable:(id)p userInfo:(id)ui reason:(id*)reason {
-    long long r = %orig;
-    id rr = reason ? *reason : nil;
-    PLog(@"[AUTH] shouldPost %@ userInfo=%@ -> ret=%lld reason=%@",
-         p, ui ? NSStringFromClass([ui class]) : @"(nil)", r, rr);
-    return r;
-}
-- (long long)shouldPresentPresentable:(id)p withPresentedPresentables:(id)others
-            responsiblePresentable:(id*)resp {
-    long long r = %orig;
-    PLog(@"[AUTH] shouldPresent %@ -> ret=%lld", p, r);
-    return r;
-}
-%end
-
-%hook SBNCNotificationDispatcher
-- (BOOL)_lockScreenWantsBanners {
-    BOOL r = %orig;
-    PLog(@"[DISPATCH] _lockScreenWantsBanners -> %@", r ? @"YES" : @"NO");
-    return r;
-}
-- (void)_updateActiveDestinations {
-    PLog(@"[DISPATCH] _updateActiveDestinations");
-    %orig;
-}
-%end
-
-// 3.1: notification-center destination — catch requests silently routed away from banners
-%hook SBNotificationCenterDestination
-- (BOOL)canReceiveNotificationRequest:(id)req {
-    BOOL r = %orig;
-    PLog(@"[NC] canReceive %@ -> %@", ReqSummary(req), r ? @"YES" : @"NO");
-    return r;
-}
-- (void)postNotificationRequest:(id)req {
-    PLog(@"[NC] postNotificationRequest %@", ReqSummary(req));
-    %orig;
-}
-- (void)modifyNotificationRequest:(id)req {
-    PLog(@"[NC] modifyNotificationRequest %@", ReqSummary(req));
-    %orig;
-}
-- (void)withdrawNotificationRequest:(id)req {
-    PLog(@"[NC] withdraw %@", ReqSummary(req));
-    %orig;
-}
-%end
-
-// 3.1: dump method lists of upstream routing classes (device-side header dump)
-static void DumpMethods(NSString *clsName) {
-    Class c = NSClassFromString(clsName);
-    if (!c) { PLog(@"[DUMP] %@ — class not found", clsName); return; }
-    unsigned int n = 0;
-    Method *ms = class_copyMethodList(c, &n);
-    PLog(@"[DUMP] ==== %@ (%u methods) ====", clsName, n);
-    for (unsigned int i = 0; i < n; i++) {
-        PLog(@"[DUMP]   %@", NSStringFromSelector(method_getName(ms[i])));
-    }
-    free(ms);
+static void SwizzleWillPresent(void) {
+    if (!gDelegateClass || gOrigWillPresent) return;
+    Method m = class_getInstanceMethod(gDelegateClass, gWillPresentSel);
+    if (!m) { PLog(@"[WC] willPresent method not found on %@", NSStringFromClass(gDelegateClass)); return; }
+    gOrigWillPresent = method_getImplementation(m);
+    IMP blk = imp_implementationWithBlock(^(id self, UNUserNotificationCenter *center,
+                                            UNNotification *n,
+                                            void (^handler)(UNNotificationPresentationOptions)) {
+        UNNotificationContent *c = n.request.content;
+        PLog(@"[WC] >>> willPresent FIRED: id=%@ title=%@ body=%@",
+             n.request.identifier, c.title ?: @"(nil)", c.body ?: @"(nil)");
+        ((void (*)(id, SEL, UNUserNotificationCenter *, UNNotification *,
+                  void (^)(UNNotificationPresentationOptions)))gOrigWillPresent)
+            (self, gWillPresentSel, center, n, handler);
+    });
+    method_setImplementation(m, blk);
+    PLog(@"[WC] willPresent swizzled on %@", NSStringFromClass(gDelegateClass));
 }
 
 %ctor {
     @autoreleasepool {
-        // 3.0.1: no plist filter (ellekit/roothide SB filter unproven) — dylib loads
-        // into every process; only act inside SpringBoard.
-        NSString *pn = [[NSProcessInfo processInfo] processName];
-        if (![pn isEqualToString:@"SpringBoard"]) return;
-        %init;
-        PLog(@"========== WXRelayProbe 3.1.0 loaded (NC dest + upstream dump), pid=%d", getpid());
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10.0 * NSEC_PER_SEC)),
+        PLog(@"========== WXRelayProbe 3.2.0 loaded (WeChat UN delegate probe), pid=%d", getpid());
+        gWillPresentSel = @selector(userNotificationCenter:willPresentNotification:withCompletionHandler:);
+        // WeChat may set delegate late; retry swizzle a few times
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ SwizzleWillPresent(); });
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20.0 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{ SwizzleWillPresent(); });
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(60.0 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
-            DumpMethods(@"SBNCNotificationDispatcherDelegate");
-            DumpMethods(@"SBUserNotificationCenter");
-            DumpMethods(@"NCNotificationDispatcher");
+            SwizzleWillPresent();
+            id dlg = [[NSClassFromString(@"UNUserNotificationCenter") performSelector:@selector(currentNotificationCenter)] delegate];
+            PLog(@"[WC] t+60s delegate=%@ willPresentResponds=%d",
+                 dlg ? NSStringFromClass(object_getClass(dlg)) : @"(nil)",
+                 dlg ? [dlg respondsToSelector:gWillPresentSel] : -1);
         });
     }
 }
