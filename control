@@ -1,8 +1,8 @@
 Package: com.wxrelay.probe
 Name: WXRelayProbe
-Version: 3.2.0
+Version: 3.2.1
 Architecture: iphoneos-arm
-Description: SB-side notification pipeline probe - hooks all processes (no filter, self-gated SpringBoard); dispatcher/authority/banner-destination; WeChat-side probe: UNUserNotificationCenter delegate observation (willPresent).
+Description: SB-side notification pipeline probe - hooks all processes (no filter, self-gated SpringBoard); dispatcher/authority/banner-destination; WeChat-side UN delegate probe; UIKit filter + processName gate (roothide app filters unreliable).
 Maintainer: WXRelay
 Author: WXRelay
 Section: Tweaks

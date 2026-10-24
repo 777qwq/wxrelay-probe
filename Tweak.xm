@@ -1,4 +1,4 @@
-// WXRelayProbe 3.2.0 - WeChat-side UNUserNotificationCenter delegate probe
+// WXRelayProbe 3.2.1 - WeChat-side UNUserNotificationCenter delegate probe
 // Hypothesis (probe-confirmed): alive WeChat is treated as "active" by usernoted;
 // presentation decision falls to WeChat's own UNUserNotificationCenter delegate,
 // whose willPresent returns nothing -> no banner, in-app sound only.
@@ -66,7 +66,7 @@ static void SwizzleWillPresent(void) {
 
 %ctor {
     @autoreleasepool {
-        PLog(@"========== WXRelayProbe 3.2.0 loaded (WeChat UN delegate probe), pid=%d", getpid());
+        PLog(@"========== WXRelayProbe 3.2.1 loaded (WeChat UN delegate probe), pid=%d", getpid());
         gWillPresentSel = @selector(userNotificationCenter:willPresentNotification:withCompletionHandler:);
         // WeChat may set delegate late; retry swizzle a few times
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)),
