@@ -1,4 +1,4 @@
-// WXRelayProbe 3.0.1 - SB-side notification pipeline probe (iOS 16.3)
+// WXRelayProbe 3.0.2 - SB-side notification pipeline probe (iOS 16.3)
 // Goal: locate where WeChat notification requests die on the 16.3 SB banner path.
 // Layers hooked: SBNCNotificationDispatcher (lockscreen/destinations)
 //                SBBannerAuthority (admission gate)
@@ -144,16 +144,6 @@ static void WXTestBanner(void) {
         NSString *pn = [[NSProcessInfo processInfo] processName];
         if (![pn isEqualToString:@"SpringBoard"]) return;
         %init;
-        PLog(@"========== WXRelayProbe 3.0.1 loaded (SB-side pipeline probe), pid=%d", getpid());
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20.0 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{
-            PLog(@"[TEST] firing test banner (t+20s)");
-            WXTestBanner();
-        });
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(35.0 * NSEC_PER_SEC)),
-                       dispatch_get_main_queue(), ^{
-            PLog(@"[TEST] retry test banner (t+35s)");
-            WXTestBanner();
-        });
+        PLog(@"========== WXRelayProbe 3.0.2 loaded (SB-side pipeline probe, no test injection), pid=%d", getpid());
     }
 }
