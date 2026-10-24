@@ -1,4 +1,4 @@
-// WXRelayProbe 3.0.0 - SB-side notification pipeline probe (iOS 16.3)
+// WXRelayProbe 3.0.1 - SB-side notification pipeline probe (iOS 16.3)
 // Goal: locate where WeChat notification requests die on the 16.3 SB banner path.
 // Layers hooked: SBNCNotificationDispatcher (lockscreen/destinations)
 //                SBBannerAuthority (admission gate)
@@ -10,6 +10,7 @@
 #import <objc/runtime.h>
 
 static NSString *kLogPath = @"/var/mobile/Library/Logs/WXRelayProbe.log";
+static NSString *kLogPath2 = @"/var/jb/usr/share/WXRelayProbe.log";
 
 static void PLog(NSString *fmt, ...) NS_FORMAT_FUNCTION(1, 2);
 static void PLog(NSString *fmt, ...) {
@@ -22,8 +23,10 @@ static void PLog(NSString *fmt, ...) {
                                                   timeStyle:NSDateFormatterMediumStyle];
     NSString *out = [NSString stringWithFormat:@"[%@] %@\n", ts, line];
     NSData *d = [out dataUsingEncoding:NSUTF8StringEncoding];
-    int fd = open([kLogPath fileSystemRepresentation], O_WRONLY | O_APPEND | O_CREAT, 0644);
-    if (fd >= 0) { write(fd, d.bytes, d.length); close(fd); }
+    for (NSString *p in @[kLogPath, kLogPath2]) {
+        int fd = open([p fileSystemRepresentation], O_WRONLY | O_APPEND | O_CREAT, 0644);
+        if (fd >= 0) { write(fd, d.bytes, d.length); close(fd); }
+    }
 }
 
 // Safe summary of an NCNotificationRequest-ish object
@@ -136,7 +139,12 @@ static void WXTestBanner(void) {
 
 %ctor {
     @autoreleasepool {
-        PLog(@"========== WXRelayProbe 3.0.0 loaded (SB-side pipeline probe), pid=%d", getpid());
+        // 3.0.1: no plist filter (ellekit/roothide SB filter unproven) — dylib loads
+        // into every process; only act inside SpringBoard.
+        NSString *pn = [[NSProcessInfo processInfo] processName];
+        if (![pn isEqualToString:@"SpringBoard"]) return;
+        %init;
+        PLog(@"========== WXRelayProbe 3.0.1 loaded (SB-side pipeline probe), pid=%d", getpid());
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20.0 * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{
             PLog(@"[TEST] firing test banner (t+20s)");
