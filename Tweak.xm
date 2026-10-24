@@ -114,29 +114,6 @@ static id gDest = nil; // captured SBNotificationBannerDestination
 }
 %end
 
-static void WXTestBanner(void) {
-    if (!gDest) { PLog(@"[TEST] no destination captured yet"); return; }
-    Class cls = [gDest class];
-    @try {
-        SEL mk = @selector(_test_notificationRequestForBannerWithIcon);
-        if (![cls respondsToSelector:mk]) { PLog(@"[TEST] _test_notificationRequestForBannerWithIcon MISSING"); return; }
-        id req = ((id (*)(id, SEL))objc_msgSend)(cls, mk);
-        PLog(@"[TEST] built request: %@", ReqSummary(req));
-        SEL post = @selector(_test_postNotificationRequest:completion:);
-        if ([gDest respondsToSelector:post]) {
-            ((void (*)(id, SEL, id, void (^)(id)))(objc_msgSend))(gDest, post, req, ^(id err) {
-                PLog(@"[TEST] _test completion err=%@", err);
-            });
-            PLog(@"[TEST] _test_postNotificationRequest called — 看屏幕是否出横幅");
-        } else {
-            PLog(@"[TEST] _test_postNotificationRequest missing, fallback postNotificationRequest:");
-            ((void (*)(id, SEL, id))(objc_msgSend))(gDest, @selector(postNotificationRequest:), req);
-        }
-    } @catch (NSException *e) {
-        PLog(@"[TEST] EXC: %@", e);
-    }
-}
-
 %ctor {
     @autoreleasepool {
         // 3.0.1: no plist filter (ellekit/roothide SB filter unproven) — dylib loads
