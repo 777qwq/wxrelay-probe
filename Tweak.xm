@@ -66,6 +66,9 @@ static void SwizzleWillPresent(void) {
 
 %ctor {
     @autoreleasepool {
+        // v3.2.1: UIKit filter loads into all UI processes; only act in WeChat
+        NSString *pn = [[NSProcessInfo processInfo] processName];
+        if (![pn isEqualToString:@"WeChat"]) return;
         PLog(@"========== WXRelayProbe 3.2.1 loaded (WeChat UN delegate probe), pid=%d", getpid());
         gWillPresentSel = @selector(userNotificationCenter:willPresentNotification:withCompletionHandler:);
         // WeChat may set delegate late; retry swizzle a few times
