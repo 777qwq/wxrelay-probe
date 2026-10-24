@@ -114,6 +114,40 @@ static id gDest = nil; // captured SBNotificationBannerDestination
 }
 %end
 
+// 3.1: notification-center destination — catch requests silently routed away from banners
+%hook SBNotificationCenterDestination
+- (BOOL)canReceiveNotificationRequest:(id)req {
+    BOOL r = %orig;
+    PLog(@"[NC] canReceive %@ -> %@", ReqSummary(req), r ? @"YES" : @"NO");
+    return r;
+}
+- (void)postNotificationRequest:(id)req {
+    PLog(@"[NC] postNotificationRequest %@", ReqSummary(req));
+    %orig;
+}
+- (void)modifyNotificationRequest:(id)req {
+    PLog(@"[NC] modifyNotificationRequest %@", ReqSummary(req));
+    %orig;
+}
+- (void)withdrawNotificationRequest:(id)req {
+    PLog(@"[NC] withdraw %@", ReqSummary(req));
+    %orig;
+}
+%end
+
+// 3.1: dump method lists of upstream routing classes (device-side header dump)
+static void DumpMethods(NSString *clsName) {
+    Class c = NSClassFromString(clsName);
+    if (!c) { PLog(@"[DUMP] %@ — class not found", clsName); return; }
+    unsigned int n = 0;
+    Method *ms = class_copyMethodList(c, &n);
+    PLog(@"[DUMP] ==== %@ (%u methods) ====", clsName, n);
+    for (unsigned int i = 0; i < n; i++) {
+        PLog(@"[DUMP]   %@", NSStringFromSelector(method_getName(ms[i])));
+    }
+    free(ms);
+}
+
 %ctor {
     @autoreleasepool {
         // 3.0.1: no plist filter (ellekit/roothide SB filter unproven) — dylib loads
@@ -121,6 +155,12 @@ static id gDest = nil; // captured SBNotificationBannerDestination
         NSString *pn = [[NSProcessInfo processInfo] processName];
         if (![pn isEqualToString:@"SpringBoard"]) return;
         %init;
-        PLog(@"========== WXRelayProbe 3.0.2 loaded (SB-side pipeline probe, no test injection), pid=%d", getpid());
+        PLog(@"========== WXRelayProbe 3.1.0 loaded (NC dest + upstream dump), pid=%d", getpid());
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10.0 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            DumpMethods(@"SBNCNotificationDispatcherDelegate");
+            DumpMethods(@"SBUserNotificationCenter");
+            DumpMethods(@"NCNotificationDispatcher");
+        });
     }
 }
