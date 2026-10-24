@@ -1,6 +1,6 @@
-Package: com.wxrelay.probe
-Name: WXRelayProbe
-Version: 3.3.1
+Package: com.wxrelay.fix
+Name: WXRelayFix
+Version: 1.0.0
 Architecture: iphoneos-arm
 Description: SB-side notification pipeline probe - hooks all processes (no filter, self-gated SpringBoard); dispatcher/authority/banner-destination; THE FIX: add willPresent (banner+list+sound) to WeChat UN delegate class (it lacked it -> system default silence).
 Maintainer: WXRelay

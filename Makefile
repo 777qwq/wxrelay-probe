@@ -4,10 +4,10 @@ THEOS_PACKAGE_SCHEME = rootless
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = WXRelayProbe
+TWEAK_NAME = WXRelayFix
 
-WXRelayProbe_FILES = Tweak.xm
-WXRelayProbe_CFLAGS = -fobjc-arc -Wall -Wno-unused-variable
-WXRelayProbe_FRAMEWORKS = Foundation UIKit
+WXRelayFix_FILES = Tweak.xm
+WXRelayFix_CFLAGS = -fobjc-arc -Wall -Wno-unused-variable
+WXRelayFix_FRAMEWORKS = Foundation UIKit
 
 include $(THEOS_MAKE_PATH)/tweak.mk

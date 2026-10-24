@@ -74,6 +74,6 @@ static void AddWillPresent(void) {
         NSString *pn = [[NSProcessInfo processInfo] processName];
         if (![pn isEqualToString:@"WeChat"]) return;
         %init;
-        PLog(@"========== WXRelayProbe 3.3.1 loaded (WeChat UN delegate FIX, inline addMethod), pid=%d", getpid());
+        PLog(@"========== WXRelayProbe 1.0.0 loaded (WXRelayFix - same fix, fresh injection path), pid=%d", getpid());
     }
 }
