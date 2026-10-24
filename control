@@ -1,8 +1,8 @@
 Package: com.wxrelay.probe
 Name: WXRelayProbe
-Version: 2.1.0
+Version: 3.0.0
 Architecture: iphoneos-arm
-Description: SpringBoard notification probe - dumps NCNotificationRequest structure and validates programmatic banner posting.
+Description: SB-side notification pipeline probe - hooks dispatcher/authority/banner-destination, fires _test banner injection to validate 16.3 banner endpoint.
 Maintainer: WXRelay
 Author: WXRelay
 Section: Tweaks
