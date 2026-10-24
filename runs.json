@@ -1,28 +1,28 @@
 {
-  "total_count": 44,
+  "total_count": 46,
   "workflow_runs": [
     {
-      "id": 39996851748,
+      "id": 39996970414,
       "name": "Build WXRelayProbe",
-      "node_id": "WFR_kwLOVURL2M8AAAAJT_-GJA",
+      "node_id": "WFR_kwLOVURL2M8AAAAJUAFVrg",
       "head_branch": "main",
-      "head_sha": "15d57ee8915478f4da4eede9462b96cc76e575dc",
+      "head_sha": "49e90bcc393fd2753b2c9cd13cc6ca2835dde0f8",
       "path": ".github/workflows/build.yml",
-      "display_title": "v2.1.0: WeChat self-assertion (initWithBundleIdentifier variant)",
-      "run_number": 44,
+      "display_title": "fix: WeChat filter + drop SB hook",
+      "run_number": 46,
       "event": "push",
-      "status": "in_progress",
+      "status": "queued",
       "conclusion": null,
       "workflow_id": 393613938,
-      "check_suite_id": 108413237055,
-      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZPe63Pw",
-      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39996851748",
-      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39996851748",
+      "check_suite_id": 108413566764,
+      "check_suite_node_id": "CS_kwDOVURL2M8AAAAZPfO_LA",
+      "url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39996970414",
+      "html_url": "https://github.com/777qwq/wxrelay-probe/actions/runs/39996970414",
       "pull_requests": [
 
       ],
-      "created_at": "2026-10-23T17:39:23Z",
-      "updated_at": "2026-10-23T17:39:26Z",
+      "created_at": "2026-10-23T17:40:14Z",
+      "updated_at": "2026-10-23T17:40:14Z",
       "actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -48,7 +48,7 @@
       "referenced_workflows": [
 
       ],
-      "run_started_at": "2026-10-23T17:39:23Z",
+      "run_started_at": "2026-10-23T17:40:14Z",
       "triggering_actor": {
         "login": "777qwq",
         "id": 202795824,
@@ -70,19 +70,19 @@
         "user_view_type": "public",
         "site_admin": false
       },
-      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39996851748/jobs",
-      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39996851748/logs",
-      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108413237055",
-      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39996851748/artifacts",
-      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39996851748/cancel",
-      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39996851748/rerun",
+      "jobs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39996970414/jobs",
+      "logs_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39996970414/logs",
+      "check_suite_url": "https://api.github.com/repos/777qwq/wxrelay-probe/check-suites/108413566764",
+      "artifacts_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39996970414/artifacts",
+      "cancel_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39996970414/cancel",
+      "rerun_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/runs/39996970414/rerun",
       "previous_attempt_url": null,
       "workflow_url": "https://api.github.com/repos/777qwq/wxrelay-probe/actions/workflows/393613938",
       "head_commit": {
-        "id": "15d57ee8915478f4da4eede9462b96cc76e575dc",
-        "tree_id": "3737e591550435500e26294a2c12ed1a49123433",
-        "message": "v2.1.0: WeChat self-assertion (initWithBundleIdentifier variant)",
-        "timestamp": "2026-10-23T17:39:19Z",
+        "id": "49e90bcc393fd2753b2c9cd13cc6ca2835dde0f8",
+        "tree_id": "0cfb1b825cba325bed9e1d8d9d3cac6a1c6ab2f8",
+        "message": "fix: WeChat filter + drop SB hook",
+        "timestamp": "2026-10-23T17:40:11Z",
         "author": {
           "name": "wxrelay",
           "email": "bot@wxrelay"

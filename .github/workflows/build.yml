@@ -21,7 +21,7 @@ jobs:
             sudo git reset --hard FETCH_HEAD
             sudo git submodule update --init --recursive
           fi
-          sudo ln -sfn /opt/theos/vendor/include /opt/include
+          sudo ln -sfn /opt/theos/vendor/include /opt/theos/vendor/include
           test -f /opt/theos/vendor/include/roothide.h
           if [ ! -d /opt/theos/sdks/iPhoneOS16.5.sdk ]; then
             sudo git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git /tmp/sdks
@@ -38,8 +38,16 @@ jobs:
           gmake package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=roothide > build.log 2>&1 || { tail -60 build.log; exit 1; }
           mkdir -p out && cp packages/*.deb out/
 
-      - name: Upload
+      - name: Upload deb
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: WXRelayProbe-roothide
           path: out/*.deb
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
